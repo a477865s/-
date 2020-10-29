@@ -1,0 +1,120 @@
+﻿@model EIP_System.Models.tTimeRecord
+
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>CreateRecord</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>tTimeRecord</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            <label class="control-label col-md-2">案號</label>
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.fProjectId, new { htmlAttributes = new { @class = "form-control", onchange = "getLevel(this.value)" } })
+                @Html.ValidationMessageFor(model => model.fProjectId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-md-2">案名</label>
+            <div class="col-md-10">
+                <p>
+                    <span id="demo"></span>
+                </p>
+            </div>
+        </div>
+
+        @*從tlevel產生下拉式選單*@
+        <div class="form-group">
+            <label class="control-label col-md-2">階段</label>
+            <div class="col-md-10">
+                <select id="fStage" name="fStage" class="form-control"></select>
+            </div>
+        </div>
+
+        @*從ProjectDetail產生下拉式選單 選擇任務名稱 但存入任務編號*@
+        <div class="form-group">
+            <label class="control-label col-md-2">任務</label>
+            <div class="col-md-10">
+                <select id="fProjectDetailId" name="fProjectDetailId" class="form-control"></select>
+                @*@Html.DropDownListFor(model => model.fProjectDetailId, htmlAttributes : new { @class = "form-control" } )*@
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-md-2">時數</label>
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.fTime, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.fTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts{
+    <script>
+        var jsonLevel;
+        function getLevel(str) {
+            $("#fStage").empty();
+            $.ajax({
+                url: "/TimeRecord/GetLevels?prjId=" + str,
+                type: "Get",
+                success: function (data) {
+                    jsonLevel = JSON.parse(data);
+                    $.each(jsonLevel, function (i, value) {
+
+                        //輸入案名後從tlevel產生下拉式選單
+                        $("#fStage").append("<option class='selector1' value=" + value.fLevelId + ">" + value.fLevelName + "</option>");
+                    })
+                }
+            });
+        };
+
+        //抓不到正確fProjectDetailId
+        //不應該用change 否則第一階段不會出現任務
+        var jsonTask;
+        $("#fStage").change(function () {
+            $("#fProjectDetailId").empty();
+            //var i = $(".selector1").val(); vs.//$(this)
+            var Id = $(this).val();
+            console.log(Id);
+            $.ajax({
+                url: "/TimeRecord/GetTask?levelId=" + Id,
+                type: "Get",
+                success: function (data) {
+                    jsonTask = JSON.parse(data);
+                    $.each(jsonTask, function (i, value) {
+
+                        //從ProjectDetail產生下拉式選單 選擇任務名稱 但存入任務編號
+                        $("#fProjectDetailId").append("<option class='selector2' value=" + value.fProjectDetailId + ">" + value.fTaskName + "</option>");
+                    })
+                    var fProjectDetailId = $(".selector2").val();
+                    console.log(fProjectDetailId);
+
+                }
+            });
+        });
+
+    </script>
+
+}
+
+
+
+
+

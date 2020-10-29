@@ -1,0 +1,545 @@
+﻿
+@{
+}
+
+
+<div class="row">
+    @*行事曆*@
+    <div class="col-md-8 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>
+                    個人行事曆
+                </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div id="calendar" class="calendar">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @*快速打卡*@
+<div class="col-md-4">
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="tile-stats" style="cursor:pointer;background-color:#3788d9" id="quick-clockin">
+                <div class="count">
+                    快速打卡
+                    <div class="icon" id="exclamation" style="margin-right:10px;display:none">
+                        <i class="glyphicon glyphicon-exclamation-sign" style="position:absolute;margin-top:15px"></i>
+                    </div>
+                    <div style="margin-right:50px;float:right;width:62px;height:62px">
+                        <div id="loader" class="loader" style="position:absolute;margin-top:10px"></div>
+                        <svg id="checkmark" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130">
+                            <polyline class="path check" fill="none" stroke="white" stroke-width="15" stroke-linecap="square" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 " />
+                        </svg>
+                    </div>
+                </div>
+
+                <p id="quick-clockin-content">讀取中...</p>
+            </div>
+        </div>
+    </div>
+</div>
+    @*公告欄*@
+    <div class="col-md-4 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>
+                    公告欄
+                </h2>
+                <div id="board-btn-create" style="float:right;display:none;padding-right:10px">
+                    <span id="create" title="新增公告" style="color:#73879C;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="board-main">
+                    <div class="board" id="board">
+
+                    </div>
+                </div>
+                <div class="board-select">
+                    <div id="board-prev" class="glyphicon glyphicon-chevron-left" style="width:15%;display:inline-block;line-height:50px;cursor:pointer">
+                    </div>
+                    <div id="board-page" style="display:inline-block">
+                    </div>
+                    <div id="board-next" class="glyphicon glyphicon-chevron-right" style="width:15%;display:inline-block;cursor:pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input id="timeout-demo" type="button"class="btn btn-primary" value="閒置Demo" />
+
+@section scripts{
+    <script>
+        let calendarid = "";
+        let boardid = "";
+        let employeeid = parseInt($("#user-employeeid").val())
+        let starttime;
+        let endtime;
+        let openedcon = [-1];
+        let noticecontent = '';
+        let bodyheight = parseInt($(document).height())
+        //行事曆
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prevYear,prev,next,nextYear today',
+                    center: 'title',
+                    right:'dayGridMonth,dayGridWeek,dayGridDay'
+                },
+                locale: "zh-tw",
+                selectable: true,
+                editable: true,
+                dayMaxEvents: true,
+            select: function (info) {
+                $("#calendar-btn-del").css({ "display": "none" })
+                $("#calendar-btn-sub").css({ "display": "inline-block" })
+                $("#calendar-title").removeAttr('readonly')
+                $("#calendar-content").removeAttr('readonly')
+                $("#calendar-checkbox").css({ "display": "inline-block" })
+                resetinput()
+                $(".background-calendar").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+                starttime = info.startStr
+                endtime = info.endStr
+                },
+            eventClick: function (info) {
+                $("#calendar-btn-del").css({ "display": "inline-block" })
+                calendarid = info.event.id
+                starttime = info.event.startStr
+                endtime = info.event.endStr
+                $.ajax({
+                     url: "@Url.Action("ShowCalendar", "Index")",
+                     method: "post",
+                     contentType: 'application/json',
+                     data: JSON.stringify({ id: info.event.id})
+                }).done(function (data) {
+                    let list = JSON.parse(data)
+                    $("#calendar-title").val("" + list[0].fTitle)
+                    noticecontent = list[0].fTitle;
+                    $("#calendar-content").val("" + list[0].fContent)
+                })
+                if (info.event.groupId === "1") {
+                    $("#calendar-btn-del").css({ "display": "none" })
+                    $("#calendar-btn-sub").css({ "display": "none" })
+                    $("#calendar-title").attr('readonly', 'readonly')
+                    $("#calendar-content").attr('readonly', 'readonly')
+                    $("#calendar-checkbox").css({ "display": "none" })
+                    $("#calendar-checkbox-label").css({ "display": "none" })
+                }
+                $(".background-calendar").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+            },
+            eventDrop: function (info) {
+                calendarid = info.event.id
+                starttime = info.event.startStr
+                endtime = info.event.endStr
+                 $.ajax({
+                     url: "@Url.Action("ShowCalendar", "Index")",
+                     method: "post",
+                     contentType: 'application/json',
+                     data: JSON.stringify({ id: info.event.id})
+                }).done(function (data) {
+                    let list = JSON.parse(data)
+                    $("#calendar-title").val("" + list[0].fTitle)
+                    $("#calendar-content").val("" + list[0].fContent)
+                    insertcalendar();
+                })
+
+                Swal.fire({
+                    position: 'center',
+                    icon: 'success',
+                    title: '編輯成功',
+                    showConfirmButton: false,
+                    timer: 800
+                })
+            }
+        });
+        //讀取行事曆事件
+        $.ajax({
+            url: "@Url.Action("ShowCalendar", "Index")",
+                method: "post",
+            contentType: 'application/json'
+        }).done(function (data) {
+            addcalendarEvent(data)
+        })
+        calendar.render();
+        //新增行事曆
+        function insertcalendar() {
+                        $.ajax({
+                    url: "@Url.Action("InsertCalendar", "Index")",
+                    method: "post",
+                            contentType: 'application/json',
+                            data: JSON.stringify({ id: calendarid, start: starttime, end: endtime, title: $("#calendar-title").val(), content: $("#calendar-content").val() })
+                        }).done(function (data) {
+                            addcalendarEvent(data)
+                         if ($("#calendar-checkbox").prop("checked"))
+                             $.ajax({
+                                 url: "@Url.Action("InsertBell", "Index")",
+                                 method: "post",
+                                 contentType: 'application/json',
+                                 data: JSON.stringify({ title: "新行事曆已添加", content: noticecontent, id: $("#user-employeeid").val()})
+                             }).done(function (data) {
+                             })
+                     })
+                        $(".background-calendar").css({ "display": "none" })
+        }
+        //刪除行事曆
+        function removecalendar() {
+            let event = calendar.getEventById(calendarid)
+            if (event != null)
+                event.remove()
+            $.ajax({
+                url: "@Url.Action("RemoveCalendar", "Index")",
+                method: "post",
+                contentType: 'application/json',
+                data: JSON.stringify({ id: calendarid })
+            }).done(function (data) {
+                addcalendarEvent(data)
+            })
+            $(".background-calendar").css({ "display": "none" })
+        }
+        $("#calendar-btn-sub").click(function () {
+            noticecontent = $("#calendar-title").val();
+            insertcalendar(); resetinput(); Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: '編輯成功',
+                showConfirmButton: false,
+                timer: 800
+            }) })
+        $("#calendar-btn-del").click(function () {
+            Swal.fire({
+                        title: '確定要刪除行事曆？',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: '確定',
+                        cancelButtonText: '取消'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            removecalendar()
+                            resetinput()
+                            Swal.fire('刪除成功')
+                        }
+                    });
+        })
+        //calendar function
+        function addcalendarEvent(data) {
+            let color = "default"
+            let bool = true
+            let list = JSON.parse(data)
+            for (let i = 0; i < list.length; i++) {
+                let event = calendar.getEventById(list[i].fId)
+                if (event != null)
+                    event.remove()
+                if (list[i].fSort === "1") {
+                    color = "#559b90"
+                    bool = false
+                }
+                else {
+                    color = "default"
+                    bool = true
+                }
+                calendar.addEvent({
+                    id: list[i].fId,
+                    groupId: list[i].fSort,
+                    title: list[i].fTitle,
+                    start: list[i].fStart,
+                    end: list[i].fEnd,
+                    color: color,
+                    editable: bool
+                })
+            }
+        }
+        $("#calendar-btn-demo").click(function () {
+            $("#calendar-title").val("通知系統維修任務")
+            $("#calendar-content").val("  EIP通知系統通知人錯誤\n  三個工作天內完成作業並回報")
+        })
+        $("#calendar-btn-cls").hover(function () { $(this).css({ "color": "#d9544f" }) }, function () { $(this).css({ "color": "#f7f7f7" }) })
+        $("#calendar-btn-cls").click(function () { $(".background-calendar").css({ "display": "none" }); resetinput(); $("#calendar-checkbox").prop("checked", false) })
+        $("#board-btn-cls").hover(function () { $(this).css({ "color": "#d9544f" }) }, function () { $(this).css({ "color": "#f7f7f7" }) })
+        //公告欄刷新
+        function refreshboard(list) {
+            let boardtpages = Math.ceil(list.length / 5)
+            let boardpage = 1
+            document.getElementById("board").innerHTML = '';
+            try {
+                $("#board-next").off();
+                $("#board-prev").off();
+                for (let i = 0; i < list.length; i++) { $("#sup" + i).off() }
+            }
+            catch{ }
+            for (let i = list.length - 1; i >= 0; i--) {
+                document.getElementById("board").innerHTML +=
+                    '<div id="board-ul'+i+'" style="display:none">'+
+                    '<ul id="sup' + i + '" class="x_panel" style="margin-bottom:0;display:flex;border-bottom:none" >'+
+                    '<li style="width:100%">' +
+                    '<ul id="sup-sup' + i + '" class="sup-sup">' +
+                '<li style="width:20%;margin-right:15px"><div id="sup-sup-type' + i + '" class="text-hidden label" style="color:white;background-color:#2E88C5" title="' + list[i].fType + '">' + list[i].fType +
+                    '</div></li>' +
+                    '<li style="width:80%"><div class="text-hidden" title="' + list[i].fTitle + '">' + list[i].fTitle +
+                    '</div></li>' +
+                    '</ul>' +
+                    '</li >' +
+                    '</ul >' +
+                    '<div class="text-hidden x_panel" style="display:block;margin-bottom:0;border-top:none;padding-top:0;font-weight:bold;color:black" id="sup-sup-name' + i + '" >' +
+                    '<span>' + list[i].fPostTime + '</span>' +
+                    '<span id="sup-sup-name-con' + i + '" title="發文人" style="float:right">發文人 </span>' +
+                    '</div>' +
+                    '<div id="content-box' + i + '" style="overflow:auto;height:0;color:black;background-color:#F9FFFF;font-size:14px">' +
+                    '<div id="content-text' + i + '" style="padding:15px;height:auto;overflow:none">' +
+                    list[i].fContent +
+                    '</div>'+
+                    '</div >' +
+                    '<div id = "board-btn-edit' + i + '" style = "background-color:white;display:none;" >' +
+                    '<span id="board-btn-update' + i + '" style="padding-left:10px;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-pencil" aria-hidden="true" ></span>' +
+                    '<span id="board-btn-remove' + i + '" style="padding-left:10px;color:red;font-size:20px;cursor:pointer;" class="glyphicon glyphicon-remove" aria-hidden="true" ></span>' +
+                    '</div>'+
+                    '<div style="background-color:gray;height:2px;">' +
+                    '</div>' +
+                    '</div>'
+                $.ajax({
+                    url: "@Url.Action("GetEmployeeName", "Index")",
+                    method: "post",
+                    contentType: "application/json",
+                    data: JSON.stringify({ id: list[i].fEmployeeId })
+                }).done(function (data) {
+                    document.getElementById("sup-sup-name-con" + i).innerHTML = "發文人 "
+                    document.getElementById("sup-sup-name-con" + i).innerHTML += data
+                })
+
+            }
+            for (let i = 0; i < list.length; i++) {
+                $("#sup" + i).off;
+                $("#board-btn-update" + i).off;
+                $("#board-btn-remove" + i).off;
+                $("#sup" + i).hover(function () { $(this).css({ "background-color": "#E5E5FF", "color": "black" }); $("#sup-sup-name" + i).css({ "background-color": "#E5E5FF", "color": "black" }) },
+                    function () { $(this).css({ "background-color": "white" }); $("#sup-sup-name" + i).css({ "background-color": "white" })  })
+                $("#sup" + i).click(function () {
+                    if (openedcon.indexOf(i) != -1) { $("#content-box" + i).stop(); $("#content-box" + i).animate({ height: "0" }, { duration: 300 }); let index = openedcon.indexOf(i); openedcon.splice(index, 1); return }
+                    else {
+                        for (let j = 0; j < list.length; j++) {
+                            if (i === j) { $("#content-box" + i).stop(); $("#content-box" + i).animate({ height: 300 }, { duration: 300 }); }
+                        }
+                    }
+                    if (@ViewBag.a)
+                        $('[id=btn]').css({ "display": "block" })
+                    openedcon.push(i);
+                })
+                if (list[i].fType === "重要")
+                {
+                    $("#sup-sup-type" + i).css({ "background-color":"#DC3546"})
+                }
+                if (list[i].fEmployeeId === employeeid)
+                    $("#board-btn-edit" + i).css({ "display": "block" })
+                $("#board-btn-update" + i).click(function () {
+                    let content = list[i].fContent.replace(/<br\s*[\/]?>/g, "\n")
+                    content = content.replace(/&nbsp;/g," ")
+                    $("#board-type").val(list[i].fType)
+                    $("#board-title").val("" + list[i].fTitle)
+                    $("#board-content").val("" + content)
+                    boardid = list[i].fId
+                    $(".background-board").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+                })
+                $("#board-btn-remove" + i).click(function () {
+                    Swal.fire({
+                        title: '確定要刪除公告？',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: '確定',
+                        cancelButtonText: '取消'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            boardid = list[i].fId
+                            $.ajax({
+                                url: "@Url.Action("RemoveBoard", "Index")",
+                                method: "post",
+                                contentType: 'application/json',
+                                data: JSON.stringify({ id: boardid })
+                            }).done(function (data) {
+                                let list = JSON.parse(data)
+                                refreshboard(list)
+                                Swal.fire(
+                                    '刪除成功'
+                                )
+                            })
+                            
+                        }
+                    })
+                })
+            }
+            for (let i = list.length - (1 + 5 * (boardpage-1)); i > list.length - (1+ 5* boardpage); i--) {
+                $("#board-ul" + i).css({"display":"block"})
+            }
+            boardchange(boardpage, boardtpages)
+            $("#board-next").click(function () {
+                if (boardpage < boardtpages) boardpage += 1;
+                boardchange(boardpage, boardtpages)
+                for (let i = list.length - 1; i >= 0; i--) { $("#board-ul" + i).css({ "display": "none" }); $("#content-box" + i).css({ "display": "none" }) }
+                for (let i = list.length - (1 + 5 * (boardpage - 1)); i > list.length - (1 + 5 * boardpage); i--) {
+                    $("#board-ul" + i).css({ "display": "block" })
+                    $("#content-box" + i).css({ "display": "block" })
+                }
+            })
+            $("#board-prev").click(function () {
+                if (boardpage > 1) boardpage -= 1;
+                boardchange(boardpage, boardtpages)
+                for (let i = list.length - 1; i >= 0; i--) { $("#board-ul" + i).css({ "display": "none" }); $("#content-box" + i).css({ "display": "none" })}
+                for (let i = list.length - (1 + 5 * (boardpage - 1)); i > list.length - (1 + 5 * boardpage); i--) {
+                    $("#board-ul" + i).css({ "display": "block" })
+                    $("#content-box" + i).css({ "display": "block" })
+                }
+            })
+        }
+        //公告欄讀取
+        $.ajax({
+                    url: "@Url.Action("ShowBoard", "Index")",
+                    method: "post",
+                 contentType: 'application/json'
+        }).done(function (data) { refreshboard(JSON.parse(data)) })
+        //公告欄編輯頁面送出
+        $("#board-btn-demo").click(function () {
+            $("#board-title").val("與蘋果相反，微軟允許 Windows 應用程式商店開發者提供外部平台銷售管道")
+            $("#board-content").val("  微軟表示將在 Windows 作業系統的應用程式商店給予開發者更多控制權，放寬應用程式交易、推廣等限制。蘋果因 App Store 條款引起開發者強烈不滿時，微軟此舉意在以更開放的平台吸引更多開發者加入。\n  微軟為應用程式商店 Microsoft Store 設了 10 項準則，應用程式商店將圍繞這些準則經營，最值得關注的是微軟放寬開發者在應用程式銷售和推廣限制，允許開發者在應用程式向用戶銷售不同服務，引導用戶轉向其他外部網站。")
+        })
+        $("#board-btn-sub").click(function () {
+            openedcon = [-1];
+            let title = $("#board-title").val();
+            let content = $("#board-content").val().replace(/\n/g, "<br>");
+            content = content.replace(/ /g,"&nbsp;")
+            let type = $("#board-type").val();
+            let promise =
+                $.ajax({
+                url: "@Url.Action("InsertBoard", "Index")",
+                method: "post",
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: boardid, title: title, content: content, type: type })
+                });
+            promise.done(function (data) {
+                refreshboard(JSON.parse(data));
+                resetinput();
+                boardpage = 1
+
+                Swal.fire({
+                    position: 'center',
+                    icon: 'success',
+                    title: '編輯成功',
+                    showConfirmButton: false,
+                    timer: 800
+                })
+            })
+            $(".background-board").css({ "display": "none" })
+            Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: '編輯成功',
+                showConfirmButton: false,
+                timer: 800
+        })
+        })
+        //公告欄編輯頁面關閉
+        $("#board-btn-cls").click(function () {
+            $(".background-board").css({ "display": "none" })
+            resetinput();
+        })
+        //新增公告
+        $("#create").click(function () {
+            boardid = '';
+            $(".background-board").css({ "display": "flex", "z-index": 100, "height": bodyheight })
+            $("#sup").css({ "z-index": 0 })
+        })
+        $("#create").hover(function () { $(this).css({ "color": "#63b4ff" }); },
+            function () { $(this).css({ "color": "#73879C" }) })
+        //公告欄頁碼
+        function boardchange(page, tpage) {
+            document.getElementById("board-page").innerHTML = '';
+            if (tpage >= 5) {
+                for (let i = 0; i < 5; i++) {
+                    document.getElementById("board-page").innerHTML +=
+                        '<div id="board-page-' + (i+1) + '" style="display:inline-block;padding:5px;cursor:pointer">' + (i + 1);
+
+                    $("#board-page-" + (i + 1)).click(function () {
+                        page = i+1
+                        $("#board-page-" + page).css({ "color": "red" })
+                    })
+                }
+                $("#board-page-" + page).css({ "color": "red" })
+            }
+            else
+            {
+                for (let i = 0; i < tpage; i++) {
+                    document.getElementById("board-page").innerHTML +=
+                        '<div id="board-page-' + (i + 1) + '" style="display:inline-block;padding:5px;cursor:pointer">' + (i + 1);
+                    $("#board-page-" + (i + 1)).click(function () {
+                        for (let j = 0; j < tpage; j++)
+                        {
+                            $("#board-page-" + j).css({ "color": "#73879C" })
+                        }
+                        page = i + 1
+                        $("#board-page-" + page).css({ "color": "red" })
+                    })
+                }
+                $("#board-page-" + page).css({ "color": "red" })
+            }
+        }
+        //清空輸入值
+        function resetinput() {
+            $("#calendar-title").val('');
+            $("#calendar-content").val('');
+            calendarid = "";
+            $("#board-title").val('');
+            $("#board-content").val('');
+        }
+        if (@ViewBag.a)
+            $('#board-btn-create').css({ "display": "block" })
+        //打卡
+        $.ajax({
+            url: "@Url.Action("getpunchtime", "Index")",
+            method: "get",
+            contentType: 'application/json'
+        }).done(function (data) {
+            if (data !== '') {
+                $("#quick-clockin").css({ "background-color": "#1abb9c" })
+                $("#loader").css({ "display": "none" })
+                $("#checkmark").css({ "display": "block" })
+                $("#quick-clockin-content").html("已打卡")
+                $("#quick-clockin").off;
+            }
+            else
+            {
+                $("#quick-clockin").css({ "background-color": "#e84c3d" })
+                $("#loader").css({ "display": "none" })
+                $("#exclamation").css({ "display": "block" })
+                $("#quick-clockin-content").html("你還沒有打卡")
+            }
+        })
+        $("#quick-clockin").click(function () {
+            let now = new moment();
+            punchTime = now.format("YYYY-MM-DDTHH:mm:ss");
+            console.log(punchTime)
+            $("#quick-clockin").css({ "background-color": "#3788d9" })
+            $("#loader").css({ "display": "block" })
+            $("#exclamation").css({ "display": "none" })
+            $("#quick-clockin-content").html("讀取中...")
+            //**打卡判斷
+            $.ajax({
+                url: "@Url.Action("punchTime", "Attend_Punchtime")",
+                method: "GET",
+                data: { now:punchTime,isDemo:false }
+            }).done(function (data) {
+                $("#quick-clockin").css({ "background-color": "#1abb9c" })
+                $("#loader").css({ "display": "none" })
+                $("#checkmark").css({ "display": "block" })
+                $("#quick-clockin-content").html("已打卡")
+            })
+        })
+    </script>
+}

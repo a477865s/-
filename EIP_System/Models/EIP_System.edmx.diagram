@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="33ccb18eecb0450abaae86701b1d01e1" Name="Diagram1" ZoomLevel="96">
+        <EntityTypeShape EntityType="EIP_DBModel.tBudget" Width="1.5" PointX="5.25" PointY="34.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tCalendar" Width="1.5" PointX="5.25" PointY="30.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tIncome" Width="1.5" PointX="5.25" PointY="37.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tMetting_date" Width="1.5" PointX="3" PointY="24.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tProjectDetail" Width="1.5" PointX="7.5" PointY="31.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tPunchtime" Width="1.5" PointX="3" PointY="44.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tSignoff" Width="1.5" PointX="5.25" PointY="18.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tTeamMember" Width="1.5" PointX="8.25" PointY="27.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="EIP_DBModel.tTimeRecord" Width="1.5" PointX="9.75" PointY="31" IsExpanded="true" />
+        <AssociationConnector Association="EIP_DBModel.FK_tTimeRecords_tProjectDetail" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="EIP_DBModel.tLeavecount" Width="1.5" PointX="3" PointY="21.125" />
+        <EntityTypeShape EntityType="EIP_DBModel.tleavesort" Width="1.5" PointX="7.5" PointY="19.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tLeavecount_tleavesort" />
+        <EntityTypeShape EntityType="EIP_DBModel.tLeave" Width="1.5" PointX="3" PointY="17.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tSignoff_tLeave" />
+        <EntityTypeShape EntityType="EIP_DBModel.tOvertime" Width="1.5" PointX="3" PointY="31.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tSignoff_tOvertime" />
+        <EntityTypeShape EntityType="EIP_DBModel.tBillboard" Width="1.5" PointX="3" PointY="13.375" />
+        <EntityTypeShape EntityType="EIP_DBModel.tEmployee" Width="1.5" PointX="0.75" PointY="23.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tBillboard_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tCalendar_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tLeave_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tLeavecount_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tMetting_date_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tOvertime_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tProjectDetail_tProjectDetail" />
+        <AssociationConnector Association="EIP_DBModel.FK_tPunchtime_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tSignoff_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tTeamMember_tTeamMember" />
+        <AssociationConnector Association="EIP_DBModel.FK_tTimeRecords_tEmployee" />
+        <EntityTypeShape EntityType="EIP_DBModel.tProject" Width="1.5" PointX="3" PointY="35.375" />
+        <AssociationConnector Association="EIP_DBModel.FK_tBudget_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tCalendar_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tProject_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tIncome_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tProjectDetail_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tTeamMember_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tTimeRecords_tProject" />
+        <EntityTypeShape EntityType="EIP_DBModel.tLevel" Width="1.5" PointX="5.25" PointY="42.375" />
+        <AssociationConnector Association="EIP_DBModel.FK_tLevel_tProject" />
+        <AssociationConnector Association="EIP_DBModel.FK_tProjectDetail_tLevel" />
+        <EntityTypeShape EntityType="EIP_DBModel.tNotify" Width="1.5" PointX="3" PointY="41.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tNotify_tEmployee" />
+        <EntityTypeShape EntityType="EIP_DBModel.tApplypunch" Width="1.5" PointX="3" PointY="9.25" />
+        <AssociationConnector Association="EIP_DBModel.FK_tApplypunch_tEmployee" />
+        <AssociationConnector Association="EIP_DBModel.FK_tSignoff_tApplypunch" />
+        </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

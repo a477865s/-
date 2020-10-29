@@ -1,0 +1,362 @@
+﻿@{ HttpCookie cookie = Request.Cookies["id"];
+    if (cookie == null)
+    {
+        Response.Redirect("~/");
+    }
+
+}
+<!--測試用-->
+@*@{
+        HttpCookie cookie = new HttpCookie("id");
+        cookie.Value = "106";
+        Response.Cookies.Add(cookie);
+    }*@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EIP System</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/jquery")
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.3.5/dist/sweetalert2.all.min.js"></script>
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/modernizr")
+    @*@Scripts.Render("~/bundles/topjs")*@
+</head>
+<body class="nav-md">
+    <iframe src="~/Index/timeoutpage" style="display:none" id="refresh"></iframe>
+    <div class="background-board">
+        <div id="popout" class="modal-content col-md-4" style="padding:0;border-radius:20px">
+            <div class="modal-header" style="padding-bottom:30px">
+                <span style="color:#f7f7f7;width:90%;font-size:1.5em;font-weight: bolder"><span style="position:absolute;left:45%">公告欄</span></span>
+                <div class="glyphicon glyphicon-remove" id="board-btn-cls" style="color:#f7f7f7;float:right;font-size:20px;cursor:pointer"></div>
+            </div>
+            <div class="modal-body" style="font-size:16px">
+                <div style="width:70%;margin:0 auto;padding-bottom:0">
+                    <p style="margin:0;color:black;font-weight:bolder">標題</p>
+                    <input id="board-title" class="form-control" type="text" style="width:100%" />
+                    <p style="margin:0;color:black;font-weight:bolder">內文</p>
+                    <textarea id="board-content" class="form-control" style="height:300px;width:100%;resize:none"></textarea>
+                    <p style="margin:0;color:black;font-weight:bolder">類型</p>
+                    <select id="board-type" class="form-control">
+                        <option value="一般">一般</option>
+                        <option value="重要">重要</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="width:70%;margin:0 auto">
+                    <input type="button" class="btn btn-success" id="board-btn-demo" value="Demo" />
+                    <input type="button" class="btn btn-primary" id="board-btn-sub" value="送出" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="background-calendar">
+        <div id="popout" class="modal-content col-md-4" style="padding:0;border-radius:20px">
+            <div class="modal-header" style="padding-bottom:30px">
+                <span style="color:#f7f7f7;margin:0;width:90%;font-size:1.5em;font-weight: bolder"><span style="position:absolute;left:40%">個人行事曆</span></span>
+                <div class="glyphicon glyphicon-remove" id="calendar-btn-cls" style="color:#f7f7f7;float:right;font-size:20px;cursor:pointer"></div>
+            </div>
+            <div class="modal-body" style="font-size:16px;">
+                <div style="width:70%;margin:0 auto;padding-bottom:0">
+                    <p style="margin:0;color:black;font-weight:bolder;">標題</p>
+                    <input id="calendar-title" class="form-control" type="text" style="width:100%;background:white" />
+                    <p style="margin:0;color:black;font-weight:bolder">內文</p>
+                    <textarea id="calendar-content" class="form-control" style="width:100%;height:300px;resize:none;background:white"></textarea>
+                    <p>
+                        <label for="calendar-checkbox" id="calendar-checkbox-label" style="font-weight:normal;margin-bottom:0"><input type="checkbox" name="calendar-checkbox" id="calendar-checkbox" />啟用通知</label>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="width:70%;margin:0 auto">
+                    <input type="button" class="btn btn-success" id="calendar-btn-demo" value="Demo" />
+                    <input type="button" class="btn btn-primary" id="calendar-btn-sub" value="送出" />
+                    <input type="button" class="btn btn-danger" id="calendar-btn-del" value="刪除" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="timeout-alert" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="z-index: 9999">
+        <div class="modal-dialog"  role="document">
+            <div class="modal-content" style="border-radius:20px">
+                <div class="modal-header">
+                    <h4 class="modal-title text-center" style="color:white" id="myModalLabel">網頁閒置</h4>
+                </div>
+                <div class="modal-body">
+                    <span>網頁將在</span><span id="alertContentId" style="color:red" class="text-center">10</span><span>秒後自動登出</span>
+                </div>
+                <div class="modal-footer">
+                    <input id="timeout-sub" type="button" class="btn btn-primary" value="繼續工作">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a class="site_title" href="~/Index/Index">
+                            <img src="..\Content\img\snail.png" width="36" height="36" alt="">
+                            <span id="site-title" style="margin-left:8px">EIP System</span>
+                        </a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <br />
+
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <div class="block"></div>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a href="@Url.Action("Index", "Employee")"><i class="fa fa-cubes"></i> 員工管理 </a>
+                                </li>
+                                <li>
+                                    <a><i class="fa fa-edit"></i> 考勤管理 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("考勤儀表板", "AttendIndex", "Attend")</li>
+                                        <li>@Html.ActionLink("打卡簽到", "PunchtimeIndex", "Attend_Punchtime")</li>
+                                        <li>@Html.ActionLink("請假申請", "LeaveIndex", "Attend_Leave")</li>
+                                        <li>@Html.ActionLink("加班申請", "CreateOverTime", "OverTime")</li>
+                                        <li>@Html.ActionLink("考勤查詢", "InfoIndex", "Attend_Info")</li>
+                                    </ul>
+                                </li>
+
+                                <li>
+                                    <a><i class="fa fa-area-chart"></i> 專案管理 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("專案列表", "List", "Project")</li>
+                                        <li>@Html.ActionLink("我的任務", "MyTaskIndex", "ProjectDetail")</li>
+                                    </ul>
+                                </li>
+
+                                <li>
+                                    <a href="@Url.Action("mettingIndex", "Metting_room")"><i class="fa fa-cubes"></i> 會議室租借 </a>
+
+                                </li>
+
+                                <li id="side-menu-manager" style="display:none">
+                                    <a><i class="fa fa-check-square-o"></i> 主管專區 <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("考勤審核", "SignoffIndex", "Signoff")</li>
+                                        <li>@Html.ActionLink("專案審核", "Index", "ProjectSignoff")</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("SalaryCalculateList", "SalaryCalculate")"><i class="fa fa-cubes"></i> 薪資試算 </a>
+
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
+                    <!-- /sidebar menu -->
+                </div>
+            </div>
+            @*@{ HttpCookie cookie = Request.Cookies["id"]; }*@
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <div class="nav toggle">
+                        <a id="menu_toggle" style="color:#2a3f54"><i class="fa fa-bars"></i></a>
+                    </div>
+                    <nav class="nav navbar-nav pull-right">
+                        <ul class=" navbar-right">
+                            <li class="nav-item dropdown" style="padding-left: 15px;">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <span id="user-profile-department" class="label" style="margin-right:10px">@Session["department" + cookie.Value]</span>
+                                    <span id="user-profile-title" class="label" style="margin-right:10px">@Session["title" + cookie.Value]</span>
+                                    <img src="..\Content\img\snail.png" alt="">
+                                    <span id="user-profile-name" style="color:#2a3f54">@Session["name" + cookie.Value]</span>
+                                    <input id="user-employeeid" style="display:none" type="text" value="@cookie.Value">
+                                </a>
+                                <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
+                                    <p id="dropdown-logout" style="cursor:pointer;margin:0" class="dropdown-item">
+                                        登出
+                                        <span class="glyphicon glyphicon-share" style="float:right"></span>
+                                    </p>
+                                </div>
+                            </li>
+
+                            <li role="presentation" class="nav-item dropdown" id="bell-dropdown">
+                                <a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1" style="font-size:17px" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-envelope-o" id="fa-envelope-o" style="font-size:25px;color:#2a3f54"></i>
+                                    <span class="badge bg-red" id="bg-red-counts"></span>
+                                </a>
+                                <ul class="dropdown-menu list-unstyled msg_list" id="bell-dropdown-item" role="menu" aria-labelledby="navbarDropdown1">
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+            <!-- page content -->
+            <div class="right_col" role="main">
+                <div class="">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12  ">
+                            @RenderBody()
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /page content -->
+
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/customjs")
+    <script src="~/signalr/hubs"></script>
+
+    <script>
+        let bellring = 0;
+        let bellHub = $.connection.bellHub;
+        let timeouttoken = 0;
+        let timecount = 10;
+        //小鈴鐺及時刷新
+        bellHub.client.bell = function (fid) {
+            for (let i = 0; i < fid; i++)
+            {
+                if (fid[i] ==@cookie.Value)
+                    {
+                        bellring += 1
+                        $("#bg-red-counts").css({ "display": "inline-block" })
+                        document.getElementById("bg-red-counts").innerHTML = bellring
+                    }
+            }
+        }
+        $.connection.hub.start().done(function () {
+            let listid = [];
+            listid.push(@cookie.Value)
+            $("#calendar-btn-sub").click(function () {
+                if ($("#calendar-checkbox").prop("checked")) {
+                    bellHub.server.bell(listid);
+                }
+            })
+            $("#showUpdate").click(function () {
+                let listid = [];
+                listid.push($("#MyTaskPmId").val())
+                if ($("#fStatus").val() === "待驗收")
+                    bellHub.server.bell(listid)
+            })
+            $("#Leave-sub").click(function () {
+                let listid = [];
+                listid.push($("#supervisorId").val())
+                bellHub.server.bell(listid)
+            })
+            $("#sealsend").click(function () {
+                console.log($("#department").val())
+                bellHub.server.bell($("#department").val())
+            })
+            $("#signoff-sub").click(function () {
+                let listid = [];
+                listid.push($("#signoff-id").val())
+                bellHub.server.bell(listid)
+            })
+
+        })
+        //小鈴鐺讀取
+        $.ajax({
+            url: '/Index/ShowBell',
+            method: "post",
+            contentType: 'application/json'
+        }).done(function (data) { bell(JSON.parse(data)) })
+
+        //小鈴鐺點擊
+        $("#navbarDropdown1").click(function () {
+            bellring = 0
+                $.ajax({
+                    url: '/Index/ShowBell',
+                    method: "post",
+                    contentType: 'application/json'
+                }).done(function (data) { bell(JSON.parse(data)) })
+        })
+        //sessiontimeout
+        let timeoutinterval = setInterval("sessiontimeout()", 600000)
+        let timecountinterval
+        $("#timeout-sub").click(function () {
+            $("#timeout-alert").modal('hide')
+            clearInterval(timecountinterval)
+            timecount = 10
+            $("#alertContentId").html(timecount)
+        })
+        $(document).on('mousemove keyup keypress', function () {
+            timeouttoken = 0;
+            clearInterval(timeoutinterval);
+            timeoutinterval = setInterval("sessiontimeout()", 600000)
+        })
+        function minustime() {
+            timecount -= 1;
+            $("#alertContentId").html(timecount)
+                if (timecount === 0)
+                    window.location.href = '@Url.Action("Logout", "Index")'
+        }
+        function sessiontimeout() {
+            timeouttoken += 1
+            console.log(timeouttoken)
+            if (timeouttoken > 3) {
+                clearInterval(timeoutinterval);
+                $("#timeout-alert").modal('show');
+                timecountinterval = setInterval("minustime()", 1000)
+            }
+            document.getElementById("refresh").contentDocument.location.reload(true);
+        }
+        $("#timeout-demo").click(function(){
+            $("#timeout-alert").modal('show')
+            timecountinterval = setInterval("minustime()", 1000)
+        })
+        //登出
+        $("#dropdown-logout").click(function () { window.location.href ='@Url.Action("Logout", "Index")'
+        })
+        $("#dropdown-logout").hover(function () { $("#dropdown-logout").css({ "background-color": "#E5E5FF" }) }, function () { $("#dropdown-logout").css({ "background-color": "white" }) })
+        //介面修改
+        $("#site-title").hover(function () { $(this).css({ "color": "#1abb9c" }) }, function () { $(this).css({ "color": "#e5e5e5" }) })
+        $("#menu_toggle").hover(function () { $(this).css({ "color": "#1abb9c" }) }, function () { $(this).css({ "color": "#2a3f54" }) })
+        $("#navbarDropdown").click(function () { $(this).css({ "background-color": "#ededed" }) })
+        $("#navbarDropdown1").click(function () { $(this).css({ "background-color": "#ededed" }) })
+        $("#user-profile-name").hover(function () { $(this).css({ "color": "#1abb9c" }) }, function () { $(this).css({ "color": "#2a3f54" }) })
+        $("#fa-envelope-o").hover(function () { $(this).css({ "color": "#1abb9c" }) }, function () { $(this).css({ "color": "#2a3f54" }) })
+        switch($("#user-profile-department").html())
+        {
+            case "設計部":
+                $("#user-profile-department").css({ "background-color":"#FF5809"})
+                break;
+            case "資訊部":
+                $("#user-profile-department").css({ "background-color": "#6C6C6C" })
+                break;
+            case "人資部":
+                $("#user-profile-department").css({ "background-color": "#18a2b7" })
+                break;
+        }
+        switch ($("#user-profile-title").html())
+        {
+            case "經理":
+                $("#user-profile-title").css({ "background-color": "#dc3546" })
+                break;
+            case "主管":
+                $("#user-profile-title").css({ "background-color": "#44aef9" })
+                break;
+            case "專員":
+                $("#user-profile-title").css({ "background-color": "#ffc007","color":"black" })
+                break;
+        }
+        if (!(@Session["auth"+cookie.Value]< 2)) { $("#side-menu-manager").css({ "display": "block" }) }
+    </script>
+
+    @RenderSection("scripts", required: false)
+
+</body>
+
+</html>

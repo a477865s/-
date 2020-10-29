@@ -1,0 +1,737 @@
+﻿@model EIP_System.ViewModels.CVM_BudgetLevel
+
+@{
+    ViewBag.Title = "EditBudget";
+    int levelNumber = Model.levels.Count();
+    int count = 0;
+
+    string applyDate = ViewBag.ApplyDate;
+    string auth = ViewBag.Auth;
+
+    //string isAgree = ViewBag.IsAgree;
+    //string id = TempData["projectId"].ToString();
+}
+
+@using (Html.BeginForm("EditBudget", "Project", FormMethod.Post, new { @id = "Budgetformsumit" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="">
+            <div class="clearfix"></div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 ">
+                    <div class="x_panel">
+                        <div class="x_title">
+
+                            <h2>@Model.budget.tProject.fProjectName @Model.budget.tProject.fProjectId </h2>
+                            <div style="float: right; display: block; padding-right: 10px;">
+                                <a class="btn btn-primary" href="@Url.Action("Dashboard", "ProjectDashboard", new { prjId = @Model.budget.fProjectId })">回儀錶板</a>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+
+                        <div class="container">
+                            <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link nowpage" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="cost" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">成本統計</a>
+                                </li>
+                            </ul>
+
+                            <div class="x_content">
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-3  ">
+                                        <section class="panel">
+                                            <div class="panel-body">
+                                                <h2 class="green">
+                                                    <i class="fa fa-paint-brush"></i> 專案預算書
+                                                </h2>
+                                                <br />
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <div class="col-md-9 col-sm-9 ">
+                                        <ul class="stats-overview">
+                                            <li>
+                                                <h2 class="name"> 總預算 </h2>
+                                                <h2 class="value text-success">
+                                                    $
+                                                    <b class="totalBuget"></b>
+                                                </h2>
+                                            </li>
+                                            <li>
+                                                <h2 class="name"> 損益總計 </h2>
+                                                <h2 class="value text-success">
+                                                    $
+                                                    <b class="revenue"></b>
+                                                </h2>
+                                            </li>
+                                            <li class="hidden-phone">
+                                                <h2 class="name"> 申請日 </h2>
+                                                <h2 class="value text-success">
+                                                    <b> @applyDate </b>
+                                                </h2>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-10 col-sm-10 col-lg-offset-1">
+                                            <div class="row justify-content-center">
+
+                                                <!-- 隱藏案號 -->
+                                                <input type="hidden" id="prjId" name="prjId" />
+
+                                                <!-- 管銷成本 -->
+
+                                                <h2>
+                                                    管銷成本
+                                                    <small>合約費用中提撥固定比例提交給公司作為管銷費用</small>
+                                                </h2>
+
+                                                <div class="x_content">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr class="bg-primary">
+                                                                <th style="width:37%">合約費用</th>
+                                                                <th style="width:20%">管銷比例</th>
+                                                                <th style="width:25%">管銷費用</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>@Model.budget.tProject.fPrice</td>
+                                                                <td>
+                                                                    @Html.EditorFor(model => model.budget.fManagementFeePct, new
+                                                                    {
+                                                                        htmlAttributes = new
+                                                                        {
+                                                                            @class = "form-control",
+                                                                            style = "border:none"
+                                                                        }
+                                                                    })
+                                                                    @Html.ValidationMessageFor(model => model.budget.fManagementFeePct, "", new { @class = "text-danger" })
+                                                                </td>
+                                                                <td >
+                                                                    <!--管銷費-->
+                                                                    $
+                                                                    <span class="ManagementFee"></span>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- 人力成本 -->
+
+                                                <div class="row">
+                                                    <h2 class="col-md-6">
+                                                        人力成本
+                                                        <small>預估專案各階段分別需要多少工時，以預測人力成本</small>
+                                                    </h2>
+                                                    <div class="col-md-1 col-md-offset-5">
+                                                        
+                                                        <btn class="btn btn-primary" id="addLevel" onclick="showModal('add')">新增</btn>
+                                                    </div>
+                                                    <div class="clearfix"></div>
+                                                </div>
+
+                                                    <div class="x_content">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr class="bg-primary">
+                                                                    <th>#</th>
+                                                                    <th width="10%">階段</th>
+                                                                    <th width="20%">預估時數</th>
+                                                                    <th width="20%">平均時薪</th>
+                                                                    <th width="18%">費用</th>
+                                                                    <th width="15%"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @for (int i = 0; i < Model.levels.Count(); i++)
+                                                                {
+                                                                    count++;
+                                                                    <tr>
+                                                                        <td style="width:10%">
+                                                                            @count
+                                                                        </td>
+                                                                        <td>
+                                                                            @Model.levels[i].fLevelName 階段
+                                                                        </td>
+                                                                        <td style="width:25%">
+                                                                            @Html.EditorFor(model => model.levels[i].fEstimateTime, new { htmlAttributes = new { @class = "form-control", style = "border:none" } })
+                                                                            @Html.ValidationMessageFor(model => model.levels[i], "", new { @class = "text-danger" })
+                                                                        </td>
+                                                                        <td style="width:25%">
+                                                                            @Html.EditorFor(model => model.budget.fSalaryHour, new { htmlAttributes = new { @class = "form-control budgetSalary", style = "border:none" } })
+                                                                            @Html.ValidationMessageFor(model => model.budget.fSalaryHour, "", new { @class = "text-danger" })
+                                                                        </td>
+                                                                        <td>
+                                                                            $
+                                                                            <span id="levelBudget_@i"></span>
+                                                                        </td>
+
+                                                                        <td >
+                                                                            <div class="row">
+                                                                            <btn class="btn btn-success" onclick="showModal();GetEdit(@Model.levels[i].fLevelId)">編輯</btn>
+                                                                            <btn class="btn btn-success" onclick="DeleteLevel(@Model.levels[i].fLevelId)">刪除</btn>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                }
+
+                                                                <tr>
+                                                                    <td></td>
+                                                                    <td>小計</td>
+                                                                    <td>
+                                                                        <span id="allTime"></span>
+                                                                    </td>
+                                                                    <td></td>
+                                                                    <td>
+                                                                        <!--人事費-->
+                                                                        $
+                                                                        <b class="PersonnelCost"></b>
+                                                                    </td>
+                                                                    <td></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                    <!--營收預測-->
+                                                    <h2>營收預測</h2>
+                                                    <div class="clearfix"></div>
+                                                    <div class="x_content">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr class="bg-primary">
+                                                                    <th>#</th>
+                                                                    <th style="width:30%">類型</th>
+                                                                    <th style="width:30%">項目</th>
+                                                                    <th style="width:30%">金額</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>1</td>
+                                                                    <td>收入</td>
+                                                                    <td>簽約費</td>
+                                                                    <td>$@Model.budget.tProject.fPrice</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>2</td>
+                                                                    <td>支出</td>
+                                                                    <td>人事成本</td>
+                                                                    <td>
+                                                                        $
+                                                                        <b class="PersonnelCost" id="PersonnelCost"></b>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>3</td>
+                                                                    <td>支出</td>
+                                                                    <td>管銷成本</td>
+                                                                    <td>
+                                                                        $
+                                                                        <b class="ManagementFee" id="ManagementFee"></b>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr class="bg-info">
+                                                                    <td>4</td>
+                                                                    <td>
+                                                                        <b>損益總計</b>
+                                                                    </td>
+                                                                    <td></td>
+                                                                    <td>
+                                                                        $
+                                                                        <b class="revenue"></b>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                        </div>
+                        <!-- 送出 -->
+                        <div class="form-group">
+                            <div class="col-md-6 col-md-offset-5">
+                                <div style="float: right; display: block; padding-right: 0px; margin-right:0px">
+                                    @*<button type="submit" class="btn btn-primary " id="applyBtn">提交</button>*@
+                                    <btn class="btn btn-success" onclick="submitBudget()">提交</btn>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Table row -->
+    </div>
+}
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog" role="document">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h2 class="modal-title" id="exampleModalLabel" style="text-align: center;color:#fff">階段資料</h2>
+
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Postdata", "Home", FormMethod.Post, new { @id = "formsumit" }))
+                {
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    //未知階段索引
+                    @*<div class="form-group">
+                            @Html.HiddenFor(model => model.levels[0].fLevelId)
+                        </div>*@
+
+                    <div class="col-md-8 col-md-offset-2">
+                        <div class="form-group">
+                            <input type="hidden" name="fProjectId" id="fProjectId" />
+                        </div>
+
+                        <div class="form-group">
+                            <input type="hidden" name="fLevelId" id="fLevelId" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-12">階段名稱</label>
+                            <div class="col-md-12">
+                                <input id="fLevelName" name="fLevelName" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <div class="col-md-8 col-md-offset-2">
+                    <btn class="btn btn-success" id="btn_demo">Demo</btn>
+                    <button type="button" class="btn btn-primary" id="showAdd" onclick="submit()">新增</button>
+                    <button type="button" class="btn btn-primary" id="showUpdate" onclick="update()">修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+
+
+<style>
+    h3 {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .name {
+        font-size: 18px !important;
+    }
+
+    h2 > b {
+        font-size: 18px !important;
+    }
+
+    .stats-overview {
+        padding-top: 22px;
+    }
+
+    .nowpage {
+        color: #1abb9c;
+        background-color: white !important;
+    }
+
+    .description {
+        margin-bottom: 20px;
+    }
+
+    .page-header {
+        margin-top: 10px;
+        border-bottom: 0px;
+    }
+
+    .input-group {
+        margin-bottom: 30px;
+    }
+
+    .addLevel {
+        position: absolute;
+        right: 6%;
+        margin-bottom: 15px;
+    }
+
+    .header {
+        color: black;
+    }
+</style>
+
+@section scripts{
+    <script>
+        //demo
+        $("#btn_demo").click(function () {
+            $("#fLevelName").val("整合");
+        });
+
+
+        //提交預算書
+        function submitBudget() {
+            var data = $("#Budgetformsumit").serialize();
+
+                Swal.fire({
+                title: '您確定提交預算書?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '確定'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("EditBudget", "Project")",
+                            data: data,
+                            success: function (response) {
+                                if (response == "success") {
+
+                                    Swal.fire(
+                                        '成功!',
+                                        '已提交預算書',
+                                        'success')
+                                    //刷新頁面
+                                    //window.location.reload();
+                                }
+                            },
+                            error: function (msg) {
+
+                            }
+                        })
+                    }
+                })
+                }
+
+
+
+        //平均時均改變時
+        $(".budgetSalary").change(function () {
+
+            let salary = $(".budgetSalary").val();
+            $(".budgetSalary").val(salary);
+
+        });
+
+        //通過預算書審核
+        $("#passBtn").click(function () {
+            console.log("kkk");
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("AgreeBudget", "Project")",
+                data: { prjId : @Model.budget.tProject.fProjectId},
+                success: function () {
+                    alert("資料儲存成功");
+                }
+            });
+        });
+
+        //載入時計算人事費、管銷費、總預算
+        $(document).ready(function () {
+            SumPersonnelCost();
+            calManagementFee();
+            revenueSum();
+            budgetSum();
+
+            //給案號
+            $("#prjId").val(@Model.budget.tProject.fProjectId);
+        });
+
+        //管銷比例改變時
+        $("#budget_fManagementFeePct").change(function () {
+            calManagementFee();
+            //SumPersonnelCost();
+            revenueSum();
+        });
+
+        //預估時數改變時
+        for(let i = 0; i < @Model.levels.Count(); i++) {
+            $("#levels_" + i + "__fEstimateTime").change(function () {
+                SumPersonnelCost();
+                revenueSum();
+            });
+        }
+
+        //平均時薪改變時
+        $("#budget_fSalaryHour").change(function () {
+            SumPersonnelCost();
+            revenueSum();
+        });
+
+        //計算損益總計
+        function revenueSum() {
+            //簽約費-人事費-管銷
+            let price = @Model.budget.tProject.fPrice;
+            let personnelCost = parseInt($("#PersonnelCost").text());
+            let managemenCost = parseInt($("#ManagementFee").text());
+
+            let sum = (price - personnelCost - managemenCost).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            $(".revenue").text(sum);
+        };
+
+        //計算總預算
+        function budgetSum() {
+            //簽約費-人事費-管銷
+            let personnelCost = parseInt($("#PersonnelCost").text());
+            let managemenCost = parseInt($("#ManagementFee").text());
+
+            let sum = (personnelCost + managemenCost).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+
+            $(".totalBuget").text(sum);
+        };
+
+        //計算人事費
+        function SumPersonnelCost() {
+            let money = 0;
+            money = $("#budget_fSalaryHour").val();
+            let sumTime = 0;
+            for (let i = 0; i < @Model.levels.Count(); i++) {
+                let time = parseInt($("#levels_" + i + "__fEstimateTime").val());
+                sumTime += time;
+
+                let levelBudget = time * money;
+                $(`#levelBudget_${i}`).text(levelBudget);
+            }
+            $("#allTime").text(sumTime);
+            $("#budget_fBudget").val(sumTime * money);
+            $(".PersonnelCost").text(sumTime * money);
+            revenueSum();
+            budgetSum();
+        }
+
+        //計算管銷費
+        function calManagementFee() {
+            let managementFeePTC = 0;
+            managementFeePTC = $("#budget_fManagementFeePct").val();
+            let managementFee = @Model.budget.tProject.fPrice* managementFeePTC;
+
+            $(".ManagementFee").text(managementFee);
+            budgetSum();
+        }
+
+        function submit() {
+            let fLevelName = $("#fLevelName").val();
+            let prjId = @Model.budget.fProjectId;
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("CreateLevel", "Project")",
+                data: { prjId: prjId, levelName: fLevelName},
+                success: function (response) {
+                    if (response == "success") {
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: '新增成功',
+                            showConfirmButton: false,
+                            timer: 1000
+                        })
+                        $("#myModal").modal('hide');
+                        //刷新頁面
+                        window.location.reload();
+                    }
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            });
+        }
+
+        //取出要編輯的階段資料
+        function GetEdit(id) {
+            console.log("案號" + id);
+            $.ajax({
+                type: "POST",
+                url: "/Project/GetEditLevel?fId=" + id,
+            dataType: "Json",
+                success: function (response) {
+                    $("#fLevelName").val(response.data[0].fLevelName);
+                    $("#fLevelId").val(response.data[0].fLevelId);
+                },
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        })
+        }
+
+        //編輯階段
+        function update() {
+            var data = $("#formsumit").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("EditLevel", "Project")",
+                data: data,
+                success: function (response) {
+                    //alert("資料儲存成功");
+                    if (response == "success") {
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: '修改成功',
+                            showConfirmButton: false,
+                            timer: 1000
+                        })
+                        $("#myModal").modal('hide');
+                        //刷新頁面
+                        window.location.reload();
+                    }
+                    $("#myModal").modal('hide');
+                    //刷新頁面
+                    window.location.reload();
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            })
+        }
+
+        //刪除階段
+        function DeleteLevel(id) {
+            Swal.fire({
+                title: '您確定要刪除此階段嗎?',
+                //text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '確定'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "Get",
+                        //url: "/Project/DeleteLevel?fId=" + id,
+                        url: "@Url.Action("DeleteLevel", "Project")",
+                        data: { fId: id},
+                        success: function (response) {
+                            if (response == "success") {
+                                //alert("資料儲存成功");
+                                Swal.fire(
+                                    '成功!',
+                                    '階段已刪除',
+                                    'success')
+                                //刷新頁面
+                                window.location.reload();
+                            }
+                            else {
+                                //alert("不允許刪除此任務，已有此任務的工時紀錄");
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '錯誤...',
+                                    text: '不允許刪除此階段，已有此階段的任務',
+                                    footer: ''
+                                })
+                            };
+                        },
+                        error: function (msg) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '錯誤...',
+                                text: '刪除失敗',
+                                footer: ''
+                            })
+                            //alert(msg.responseText);
+                        }
+                    })
+                }
+            })
+        }
+
+        //顯示 新增/修改 視窗
+        function showModal(status) {
+            let prjId = @Model.budget.fProjectId;
+            $("#fProjectId").val(prjId);
+            $("#myModal").modal("show");
+            if (status == 'add') {
+                //新增
+                $("#showAdd").show();
+                $("#showUpdate").hide();
+                //清空資料
+                $("#fId").val("");
+                $("#fLevelName").val("");
+            } else {
+                //修改
+                $("#showAdd").hide();
+                $("#showUpdate").show();
+            }
+        }
+
+        //切換專案基本資料
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                    window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @Model.budget.fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @Model.budget.fProjectId })';
+                },
+                error: function (err) { }
+            })
+        })
+
+        //切換工作項目
+        $("#ProjectDetail").click(function () {
+            $.ajax({
+                type: "GET",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href =  '@Url.Action("Index", "ProjectDetail", new { prjId = @Model.budget.fProjectId })';
+                },
+                error: function (err) { }
+                    })
+        })
+
+        //切換專案成本
+        $("#cost").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("projectCost", "Project", new { prjId = @Model.budget.fProjectId })';
+                }
+            })
+        })
+
+    </script>
+}

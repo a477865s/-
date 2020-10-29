@@ -1,0 +1,720 @@
+﻿@model EIP_System.Models.tEmployee
+
+@{
+    ViewBag.Title = "Index";
+    List<SelectListItem> auth = new List<SelectListItem>
+{
+        new SelectListItem{Text="一般員工",Value="1"},
+        new SelectListItem{Text="主任",Value="2"},
+        new SelectListItem{Text="經理",Value="3"}
+    };
+    List<SelectListItem> department = new List<SelectListItem>
+{
+        new SelectListItem{Text= "設計部", Value="設計部"},
+        new SelectListItem{Text= "業務部", Value="業務部"},
+        new SelectListItem{Text= "人資部", Value="人資部"},
+        new SelectListItem{Text= "資訊部", Value="資訊部"}
+    };
+    List<SelectListItem> Education = new List<SelectListItem>
+{
+        new SelectListItem{Text= "國小", Value="國小"},
+        new SelectListItem{Text= "國中", Value="國中"},
+        new SelectListItem{Text= "高中", Value="高中"},
+        new SelectListItem{Text= "專科", Value="專科"},
+        new SelectListItem{Text= "大學", Value="大學"},
+        new SelectListItem{Text= "碩士", Value="碩士"},
+        new SelectListItem{Text= "博士", Value="博士"}
+    };
+    List<SelectListItem> state = new List<SelectListItem>
+{
+        new SelectListItem{Text="試用期",Value="試用期"},
+        new SelectListItem{Text="正式任用",Value="正式任用"},
+        new SelectListItem{Text="已離職",Value="已離職"}
+    };
+}
+@functions
+{
+    //密碼顯示方法
+    //規則如下
+    //顯示前三碼及最後一碼，中間補*
+    public string maskPassword(string fPassword)
+    {
+        string s1 = fPassword.Substring(0, 3);
+        string sLast = fPassword.Substring(fPassword.Length - 1, 1);
+
+        string mask = "";
+        for (int i = 1; i <= fPassword.Length - 2; i++)
+        {
+            mask += "*";
+        }
+        return s1 + mask + sLast;
+    }
+    //住址顯示方法
+    //規則如下
+    //顯示前六位中文，後面顯示*
+    public string maskAddress(string fAddress)
+    {
+        string s1 = fAddress.Substring(0, 6);
+
+        string mask = "";
+        for (int i = 1; i <= fAddress.Length; i++)
+        {
+            mask += "*";
+        }
+        return s1 + mask;
+    }
+    public string ConvertAuth(int fAuth)
+    {
+        if (fAuth == 3)
+        {
+            return "最高權限";
+        }
+        else if (fAuth == 2)
+        {
+            return "主管權限";
+        }
+        else if (fAuth == 1)
+        {
+            return "一般權限";
+        }
+        else
+        {
+            return "尚未選擇權限";
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>員工資料管理</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                @*<div class="jumbotron bg-primary" style="margin-top:20px">
+                        <p>目前時間: @DateTime.Now.AddHours(8)</p>
+                    </div>*@
+                <button class="btn btn-primary" style="margin-bottom:20px" onclick="showModal('add')">
+                    <span class="glyphicon glyphicon-plus">新增</span>
+                </button>
+                <table class="table table-bordered table-striped" id="empTable">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th style="width:7%">員編</th>
+                            <th style="width:10%">員工姓名</th>
+                            <th style="width:7%">身分證</th>
+                            <th style="width:6%">密碼</th>
+                            <th style="width:8%">部門別</th>
+                            <th style="width:7%">職稱</th>
+                            <th>Email</th>
+                            <th style="width:10%">生日</th>
+                            <th style="width:10%">行動電話</th>
+                            @*<th>到職日</th>*@
+                            <th style="width:8%">狀態</th>
+                            <th style="width:10%">權限等級</th>
+                            <th>更新</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-lg">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h2 class="modal-title" style="text-align:center">員工資料管理</h2>
+                </div>
+                <div class="modal-body" style="height:auto">
+                    @using (Html.BeginForm("Create", "Employee", FormMethod.Post, new { @id = "formEmp" }))
+                    {
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="form-group">
+                            @*使用Html.HiddenFor 隱藏ID用於修改相關*@
+                            @Html.HiddenFor(model => model.fEmployeeId)
+                        </div>
+
+
+                        @*<div class="form-group">
+                                員工編號
+                <div class="col-md-12">
+                    <input class="form-control text-box single-line" disabled="disabled" type="number" value="" id="ShowEmployeeId" />
+                </div>
+            </div>*@
+                        @*<div class="form-group">
+                @Html.LabelFor(model => model.fEmployeeId, htmlAttributes: new { @class = "control-label col-md-12" })
+                <div class="col-md-12">
+                    @Html.EditorFor(model => model.fEmployeeId, new { htmlAttributes = new { @class = "form-control", @disabled = "disabled" } })
+                    @Html.ValidationMessageFor(model => model.fEmployeeId, "", new { @class = "text-danger" })
+                </div>
+            </div>*@
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fName, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fName, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fIdent, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fIdent, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fIdent, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-12">密碼</label>
+                                    <div class="col-md-12">
+                                        <input type="password" class="form-control" id="pwd1" placeholder="請輸入英數字組合共六碼" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fPassword, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fPassword, new { htmlAttributes = new { @class = "form-control", @type = "password", @id = "pwd2", @placeholder = "請輸入英數字組合共六碼", required = "required" } })
+                                        <span class="form-control;text-danger" id="span1"></span>
+                                        @Html.ValidationMessageFor(model => model.fPassword, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fDepartment, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.DropDownListFor(model => model.fDepartment, department, "請選擇部門", htmlAttributes: new { @class = "form-control" , required = "required" })
+                                        @Html.ValidationMessageFor(model => model.fDepartment, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fTitle, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fTitle, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fTitle, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fAuth, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.DropDownListFor(model => model.fAuth, auth, "請選擇權限", htmlAttributes: new { @class = "form-control", required = "required" })
+                                        @Html.ValidationMessageFor(model => model.fAuth, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fEmail, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fEmail, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fEmail, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h4>員工詳細資料</h4>
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fBirth, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fBirth, new { htmlAttributes = new { @class = "form-control", @type = "date", @id = "maxdate", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fBirth, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fPhonePersonal, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fPhonePersonal, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fPhonePersonal, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fHireDate, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fHireDate, new { htmlAttributes = new { @class = "form-control", @type = "date", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fHireDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fSalaryMonth, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fSalaryMonth, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fSalaryMonth, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fCountry, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fCountry, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fCountry, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fBirthPlace, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fBirthPlace, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fBirthPlace, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fEducation, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.DropDownListFor(model => model.fEducation, Education, "請選擇教育程度", htmlAttributes: new { @class = "form-control", required = "required" })
+                                        @Html.ValidationMessageFor(model => model.fEducation, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fState, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.DropDownListFor(model => model.fState, state, "請選擇員工狀態", htmlAttributes: new { @class = "form-control", required = "required" })
+                                        @Html.ValidationMessageFor(model => model.fState, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>員工通訊資料</h4>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>緊急連絡人資料</h4>
+                            </div>
+                        </div>
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fPhoneHouse, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fPhoneHouse, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fPhoneHouse, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fAddressNow, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fAddressNow, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fAddressNow, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fAddressOrigin, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fAddressOrigin, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fAddressOrigin, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fEngyName, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fEngyName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fEngyName, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.fEngyPhone, htmlAttributes: new { @class = "control-label col-md-12" })
+                                    <div class="col-md-12">
+                                        @Html.EditorFor(model => model.fEngyPhone, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.fEngyPhone, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12 modal-footer">
+                                <a class="btn btn-primary" onclick="submit()" id="showAdd" data-dismiss="modal">新增</a>
+                                <a class="btn btn-success" onclick="submit()" id="showUpdate" data-dismiss="modal">修改</a>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @*<div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+
+        var EmployeeTable;
+
+        $(document).ready(function () {
+
+            EmployeeTable =
+                $('#empTable').DataTable({
+                    "ajax": {
+                        "type": "POST",
+                        "url": "@Url.Action("Getdata", "Employee")",
+                        "datatype": "JSON"
+                    },
+                    "columns": [
+                        { "data": "fEmployeeId" },
+                        { "data": "fName" },
+                        {
+                            "data": "fIdent"
+                            , "render": function (password) {
+                                var id1 = password.substring(0, 1);
+                                var id2 = password.substr(-1, 1);
+                                return id1 + "********" + id2;
+                            }
+                        },
+                        {
+                            "data": "fPassword"
+                            //下列註解
+                            , "render": function (password) {
+                                var s1 = password.substring(0, 1);
+                                var sLast = password.substr(-1, 1);
+                                return s1 + "****"+sLast;
+                            }
+                        },
+                        { "data": "fDepartment" },
+                        { "data": "fTitle" },
+                        { "data": "fEmail" },
+                        {
+                            "data": "fBirth"
+
+                            , "render": function getDateIfDate(d) {
+                                jsDate = new Date(parseInt(d.substr(6)));
+                                console.log(jsDate)
+                                year = jsDate.getFullYear();
+                                month = jsDate.getMonth() + 1;
+                                date = jsDate.getDate();
+
+                                month = month >= 10 ? month : "0" + month;
+                                date = date >= 10 ? date : "0" + date;
+                                result = `${year}-${month}-${date}`;
+                                return result;
+                            }},
+
+                        { "data": "fPhonePersonal" },
+                        { "data": "fState" },
+                        {
+                            "data": "fAuth"
+
+                        , "render": function (abc) {
+                                if (abc == 1) {
+                                    return " 一般權限";
+                                }
+                                else if (abc == 2) {
+                                    return "主管權限";
+                                }
+                                else if (abc == 3) {
+                                    return "最高權限";
+                                }
+                                else {
+                                    return "錯誤";
+                                }
+                            }
+                        },
+                        //{ "data": "fHireDate" },
+                        //{ "data": "fSalaryMonth" },
+                        //{ "data": "fSalaryHour" },
+                        //{ "data": "fPhoneHouse" },
+                        //{ "data": "fCountry" },
+                        //{ "data": "fBirthPlace" },
+                        //{ "data": "fEducation" },
+                        //{ "data": "fAddressNow" },
+                        //{ "data": "fAddressOrigin" },
+                        //{ "data": "fEngyName" },
+                        //{ "data": "fEngyPhone" },
+                        //{ "data": "fOld" },
+                        //{ "data": "fFireDate" },
+                        //{ "data": "fBackDate" },
+                        //{ "data": "fLIDate" },
+                        //{ "data": "fLIDateNone" },
+                        //{ "data": "fHIDate" },
+                        //{ "data": "fHIDateNone" },
+                        //{ "data": "fPercentOwn" },
+                        //{ "data": "fPercent" },
+                    {
+                        "data": "fEmployeeId", "render": function (id) {
+                            return `<a class='btn btn-success' onclick='Edit(${id}); showModal();' style='margin-right:10px'>編輯</a>`
+                                //+ `<a class='btn btn-danger' onclick='Delete(${id})'>Delete</a>`
+                        }
+                    }
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "沒有任何資料，請按[新增]按鈕來新增資料"
+                }
+
+            });
+        });
+        //顯示 新增/修改 視窗
+        function showModal(status) {
+            $("#myModal").modal("show");
+            if (status == 'add') {
+                //新增
+                $("#showAdd").show();
+                $("#showUpdate").hide();
+                //清空資料
+                //$("#fId").val("");
+                $("#fEmployeeId").val("");
+                $("#fName").val("");
+                $("#fIdent").val("");
+                $("#pwd2").val("");
+                $("#fDepartment").val("");
+                $("#fTitle").val("");
+                $("#fEmail").val("");
+                $("#fPhonePersonal").val("");
+                $("#fState").val("");
+                $("#fAuth").val("");
+                $("#fEducation").val("");
+                //fBirth的id=maxdate
+                $("#maxdate").val("");
+                $("#fHireDate").val("");
+                $("#fSalaryMonth").val("");
+                $("#fSalaryHour").val("");
+                $("#fPhoneHouse").val("");
+                $("#fCountry").val("");
+                $("#fBirthPlace").val("");
+                $("#fAddressNow").val("");
+                $("#fAddressOrigin").val("");
+                $("#fEngyName").val("");
+                $("#fEngyPhone").val("");
+                $("#fOld").val("");
+                $("#fFireDate").val("");
+                $("#fBackDate").val("");
+                $("#fLIDate").val("");
+                $("#fLIDateNone").val("");
+                $("#fHIDate").val("");
+                $("#fHIDateNone").val("");
+                $("#fPercentOwn").val("");
+                $("#fPercent").val("");
+
+
+            } else {
+                //修改
+                $("#showAdd").hide();
+                $("#showUpdate").show();
+
+            }
+        }
+
+
+        function submit() {
+            var data = $("#formEmp").serialize();
+            $.ajax({
+                type:"POST",
+                url:"@Url.Action("Create", "Employee")",
+                data: data,
+                success: function (response) {
+                    if (response == "success") {
+                        alertGood()
+                        function alertGood() {
+                            Swal.fire(
+                                '讚啦',//標題
+                                '資料儲存成功',//訊息內容
+                                'success' //圖示(可省略) success/info/warning/error/question
+                                //圖示範例：https://sweetalert2.github.io/#icons
+                            );
+                        }
+
+                        //alert("資料儲存成功");
+                        //window.location.reload();
+                        EmployeeTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    }
+                    else if (response == "error") {
+                        alertTest()
+                        function alertTest() {
+                            Swal.fire(
+                                "錯誤", //標題
+                                "請輸入正確身分證\n請輸入正確信箱或密碼\n密碼為英數混和共6碼！!", //訊息內容(可省略)
+                                "error" //圖示(可省略) success/info/warning/error/question
+                                //圖示範例：https://sweetalert2.github.io/#icons
+                            );
+                        }
+
+                        //alert("請輸入正確身分證\n請輸入正確信箱或密碼\n密碼為英數混和共6碼！");
+                    }
+                    else if (response == "empty") {
+                        alertTest1()
+                        function alertTest1() {
+                            Swal.fire(
+                                "錯誤", //標題
+                                "請填入必填欄位", //訊息內容(可省略)
+                                "error" //圖示(可省略) success/info/warning/error/question
+                                //圖示範例：https://sweetalert2.github.io/#icons
+                            );
+                        }
+
+                        //alert("請填入必填欄位");
+                    }
+                },
+                error: function (msg) {
+
+                    alert(msg.responseText);
+                }
+            });
+        }
+        function Edit(id) {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("GetEdit", "Employee")/" + id,
+                dataType: "JSON",
+                success: function (response) {
+                    $("#fEmployeeId").val(response.data[0].fEmployeeId);
+                    //$("#ShowEmployeeId").val(response.data[0].fEmployeeId);
+                    $("#fName").val(response.data[0].fName);
+                    $("#fIdent").val(response.data[0].fIdent);
+                    $("#pwd2").val(response.data[0].fPassword);
+                    $("#fDepartment").val(response.data[0].fDepartment);
+                    $("#fTitle").val(response.data[0].fTitle);
+                    $("#fEmail").val(response.data[0].fEmail);
+                    $("#fPhonePersonal").val(response.data[0].fPhonePersonal);
+                    $("#fState").val(response.data[0].fState);
+                    $("#fAuth").val(response.data[0].fAuth);
+                    $("#fEducation").val(response.data[0].fEducation);
+                    //fBirth的id=maxdate
+                    $("#maxdate").val(getDateIfDate(response.data[0].fBirth));
+
+                    function getDateIfDate(d) {
+                        jsDate = new Date(parseInt(d.substr(6)));
+                        console.log(jsDate)
+                        year = jsDate.getFullYear();
+                        month = jsDate.getMonth() + 1;
+                        date = jsDate.getDate();
+
+                        month = month >= 10 ? month : "0" + month;
+                        date = date >= 10 ? date : "0" + date;
+                        result = `${year}-${month}-${date}`;
+                        return result;
+                    }
+
+                    $("#fHireDate").val(getDateIfDate(response.data[0].fHireDate));
+                    $("#fSalaryMonth").val(response.data[0].fSalaryMonth);
+                    $("#fSalaryHour").val(response.data[0].fSalaryHour);
+                    $("#fPhoneHouse").val(response.data[0].fPhoneHouse);
+                    $("#fCountry").val(response.data[0].fCountry);
+                    $("#fBirthPlace").val(response.data[0].fBirthPlace);
+                    $("#fAddressNow").val(response.data[0].fAddressNow);
+                    $("#fAddressOrigin").val(response.data[0].fAddressOrigin);
+                    $("#fEngyName").val(response.data[0].fEngyName);
+                    $("#fEngyPhone").val(response.data[0].fEngyPhone);
+                    $("#fOld").val(response.data[0].fOld);
+                    $("#fFireDate").val(response.data[0].fFireDate);
+                    $("#fBackDate").val(response.data[0].fBackDate);
+                    $("#fLIDate").val(response.data[0].fLIDate);
+                    $("#fLIDateNone").val(response.data[0].fLIDateNone);
+                    $("#fHIDate").val(response.data[0].fHIDate);
+                    $("#fHIDateNone").val(response.data[0].fHIDateNone);
+                    $("#fPercentOwn").val(response.data[0].fPercentOwn);
+                    $("#fPercent").val(response.data[0].fPercent);
+                    },
+                    error: function (msg) {
+                        alert(msg.responseText);
+                    }
+            });
+        }
+
+        function Delete(id){
+            if (confirm("您確定要刪除嗎?")) {
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("Delete","Employee")/' + id, /*斜線很重要一定要加*/
+                    dataType:"JSON",
+                    success: function (response) {
+                        if (response == "success") {
+                            alert("資料刪除成功");
+                            //window.location.reload();
+                            EmployeeTable.ajax.reload();
+                            $("#myModal").modal('hide');
+                        }
+                        else { alert("失敗");}
+                    },
+                    error: function (msg) {
+                        alert(msg.responseText);
+                    }
+                });
+
+            }
+        }
+
+        let pwdinput = document.getElementById("pwd1")
+        let pwdconfirm = document.getElementById("pwd2")
+        let pwdspan = document.getElementById("span1")
+        let regPwd = /^.*(?=.{6,})(?=.*\d)(?=.*[a-zA-Z]).*$/;
+        document.getElementById("pwd1").addEventListener("change", checkpwd);
+        document.getElementById("pwd2").addEventListener("change", checkpwd);
+        function checkpwd() {
+            if (!regPwd.test(pwd2.value) | !regPwd.test(pwd1.value)) {
+                pwdspan.innerHTML = "請輸入英數字組合共六碼";
+                $("#showAdd").hide();
+
+                //document.getElementById("showAdd").disabled = true;
+            }
+            else if (pwd1.value == pwd2.value) {
+                pwdspan.innerHTML = "密碼相符";
+                $("#showAdd").show();
+                //document.getElementById("showAdd").disabled = false;
+            }
+
+            else {
+                pwdspan.innerHTML = "請輸入相同的密碼";
+                $("#showAdd").hide();
+
+                //document.getElementById("showAdd").disabled = true;
+            }
+        }
+        //生日日期
+        var today = new Date();
+
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+
+        today = yyyy + '-' + mm + '-' + dd;
+        document.getElementById('maxdate').max = today;
+
+
+
+        ////身分證驗證
+        //let idNumber = document.getElementById("idNumber")
+        //let idNumberspan = document.getElementById("idNumberspan")
+        //let regId = /^[A-Za-z][12]\d{8}$/;
+        //document.getElementById("idNumber").addEventListener("change", checkpwd);
+        //function checkpwd() {
+        //    if (!regId.test(idNumber.value)) {
+        //        idNumberspan.innerHTML = "請輸入正確身份證字號";
+        //        //document.getElementById("submit").disabled = true;
+        //        $("#showAdd").hide();
+        //    }
+        //    else {
+        //        idNumberspan.innerHTML = "";
+        //        $("#showAdd").show();
+        //    }
+        //}
+    </script>
+
+
+}
+

@@ -1,0 +1,135 @@
+﻿@model IEnumerable<EIP_System.Models.tProjectDetail>
+
+@{
+    ViewBag.Title = "List";
+}
+
+<p>
+    @Html.ActionLink("Create New", "Create", new { prjId = Model.FirstOrDefault().fProjectId })
+</p>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>@Model.FirstOrDefault().tProject.fProjectName @Model.FirstOrDefault().tProject.fProjectId </h2>
+                <div class="clearfix"></div>
+            </div>
+            @*<div class="x_content">*@
+            @*<ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                </li>
+            </ul>*@
+            <div class="x_content">
+                <div class="col-md-12 col-sm-3  ">
+                    <section class="panel">
+                        <div class="panel-body">
+                            <h3 class="green">
+                                <i class="fa fa-paint-brush"></i> 專案工作項目
+                            </h3>
+                            <br />
+                        </div>
+                    </section>
+                </div>
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.fTaskName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.tEmployee.fName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.fStatus)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.fDeadline)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.fRemarks)
+                        </th>
+
+                        <th></th>
+                    </tr>
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.fTaskName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.tEmployee.fName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.fStatus)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.fDeadline)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.fRemarks)
+                            </td>
+
+                            <td>
+                                @Html.ActionLink("Edit", "Edit", new { fId = item.fProjectDetailId }) |
+                                @Html.ActionLink("Delete", "Delete", new { fId = item.fProjectDetailId, prjId = item.fProjectId })
+                            </td>
+                        </tr>
+                    }
+
+                </table>
+                @*</div>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+        //切換專案基本資料
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                 window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @Model.FirstOrDefault().fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @Model.FirstOrDefault().fProjectId })';
+                },
+                error: function (err) { }
+            })
+        })
+
+        //切換工作項目
+        $("#ProjectDetail").click(function () {
+            $.ajax({
+                type: "GET",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href =  '@Url.Action("Index", "ProjectDetail", new { prjId = @Model.FirstOrDefault().fProjectId })';
+                },
+                error: function (err) { }
+                    })
+        })
+    </script>
+}

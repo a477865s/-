@@ -1,0 +1,386 @@
+﻿@model EIP_System.Models.tOvertime
+
+@{
+    ViewBag.Title = "CreateOverTime";
+    List<SelectListItem> SortList = new List<SelectListItem>
+{
+        new SelectListItem{Text="平日加班",Value="平日加班"},
+        new SelectListItem{Text="休息日加班",Value="休息日加班"},
+        new SelectListItem{Text="休假日加班（國定假日、特別休假）",Value="休假日加班"},
+        new SelectListItem{Text="例假日加班",Value="例假日加班"}
+    };
+    //寫入加班時數單位0.5 by once
+    List<SelectListItem> TimeCountList = new List<SelectListItem>();
+    {
+        for (var i = 0.5; i <= 12; i += 0.5)
+        {
+            TimeCountList.Add(new SelectListItem { Text = i.ToString(), Value = i.ToString() });
+        }
+    };
+}
+
+@if (TempData["Attend_msg"] != null)
+{
+    <script type="text/javascript">
+        var message = @Html.Raw(Json.Encode(TempData["Attend_msg"]));
+
+        if (message == "送出成功") {
+            alertGood()
+        }
+        else {
+            alertTest()
+        }
+
+        function alertGood() {
+            Swal.fire(
+                '讚啦',//標題
+                message,//訊息內容
+                'success' //圖示(可省略) success/info/warning/error/question
+                //圖示範例：https://sweetalert2.github.io/#icons
+            );
+        }
+        function alertTest() {
+            Swal.fire(
+                message,//標題
+                '',//訊息內容
+                'warning' //圖示(可省略) success/info/warning/error/question
+                //圖示範例：https://sweetalert2.github.io/#icons
+            );
+        }
+
+    </script>
+}
+@using EIP_System.Models;
+@functions{
+    //申請月份總計
+    EIP_DBEntities db = new EIP_DBEntities();
+    static int fakeid = 0;
+    //當月
+    public double TimeCountForMonth()
+    {
+        HttpCookie cookie = Request.Cookies["id"];
+        int u = Convert.ToInt32(cookie.Value);
+        fakeid = u;
+        EIP_DBEntities db = new EIP_DBEntities();
+        double TimeCountMonth = (from a in db.tOvertimes.AsEnumerable()
+                                 join ts in db.tSignoffs.AsEnumerable()
+                                 on a.fId equals ts.fOvertimeId
+                                 where a.fActiveDate.Year == DateTime.Now.Year
+                                 && a.fActiveDate.Month == DateTime.Now.Month
+                                 && a.fEmployeeId == fakeid
+                                 && ts.fIsAgreed == 1
+                                 select a.fTimeCount).DefaultIfEmpty().Sum();
+        return TimeCountMonth;
+    }
+    //三個月合計
+    public double TimeCountForThreeMonth()
+    {
+
+        EIP_DBEntities db = new EIP_DBEntities();
+        //本月
+        double TimeCountOne = (from b in db.tOvertimes.AsEnumerable()
+                               join ts6 in db.tSignoffs.AsEnumerable()
+                               on b.fId equals ts6.fOvertimeId
+                               where b.fActiveDate.Year == DateTime.Now.Year
+                               && b.fActiveDate.Month == DateTime.Now.Month
+                               && b.fEmployeeId == fakeid
+                               && ts6.fIsAgreed == 1
+                               select b.fTimeCount).DefaultIfEmpty().Sum();
+        //上月
+        double TimeCountTwo = (from c in db.tOvertimes.AsEnumerable()
+                               join ts7 in db.tSignoffs.AsEnumerable()
+                               on c.fId equals ts7.fOvertimeId
+                               where c.fActiveDate.Year == DateTime.Now.Year
+                               && c.fActiveDate.Month == DateTime.Now.AddMonths(-1).Month
+                               && c.fEmployeeId == fakeid
+                               && ts7.fIsAgreed == 1
+                               select c.fTimeCount).DefaultIfEmpty().Sum();
+        //上上月
+        double TimeCountThree = (from d in db.tOvertimes.AsEnumerable()
+                                 join ts8 in db.tSignoffs.AsEnumerable()
+                                 on d.fId equals ts8.fOvertimeId
+                                 where d.fActiveDate.Year == DateTime.Now.Year
+                                 && d.fActiveDate.Month == DateTime.Now.AddMonths(-2).Month
+                                 && d.fEmployeeId == fakeid
+                                 && ts8.fIsAgreed == 1
+                                 select d.fTimeCount).DefaultIfEmpty().Sum();
+
+        return TimeCountOne + TimeCountTwo + TimeCountThree;
+    }
+}
+<style>
+    h2 {
+        font-size: 24px;
+        color: #3f5265;
+        font-weight: 600;
+    }
+
+    h3 {
+        font-size: 16px;
+        color: #3f5265;
+        font-weight: bold;
+    }
+</style>
+<div class="row">
+    <div class="x_title">
+        <h2>加班申請</h2>
+        <div class="clearfix"></div>
+    </div>
+</div>
+<div class="row">
+    @*請假申請*@
+    <div class="col-md-6 col-sm-6 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>表單填寫</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <h3>員工基本資料</h3>
+                        <div class="form-group row">
+                            <div class="col-md-4 col-sm-4">
+                                <label>員工編號</label>
+                                <input type="text" class="form-control" id="empid" readonly="readonly" />
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                <label>員工姓名</label>
+                                <input type="text" class="form-control" id="empname" readonly="readonly" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4 col-sm-4">
+                                <label>員工職稱</label>
+                                <input type="text" class="form-control" id="emptitle" readonly="readonly" />
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                <label>員工部門</label>
+                                <input type="text" class="form-control" id="empdepartment" readonly="readonly" />
+                            </div>
+                        </div>
+                        <hr />
+                        <h3>請假資料</h3>
+                        <div class="form-group">
+                            @Html.HiddenFor(model => model.fId)
+                        </div>
+                        @*<div class="form-group row">
+                                @Html.LabelFor(model => model.fId, new { @class = "control-label col-md-3 col-sm-3 " })
+                                <div class="col-md-9 col-sm-9 ">
+                                    @Html.EditorFor(model => model.fId, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                    @Html.ValidationMessageFor(model => model.fId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>*@
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-12 col-sm-12">
+                            @Html.LabelFor(model => model.fSort, new { @class = "col-form-label label-align" })
+                            @Html.DropDownListFor(model => model.fSort, SortList, "請選擇加班類別", htmlAttributes: new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.fSort, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="form-group row">
+                        <div class="col-md-6 col-sm-6">
+                            <label class="col-form-label">@DateTime.Now.Month.ToString() 月已加班總時數</label>
+                            <input class="form-control" disabled="disabled" value="@TimeCountForMonth()">每月不能超過46小時~~
+                        </div>
+                        <div class="col-md-6 col-sm-6">
+                            <label class="col-form-label">@DateTime.Now.AddMonths(-2).Month.ToString() 至 @DateTime.Now.Month.ToString() 月間加班總時數</label>
+
+                            <input class="form-control" disabled="disabled" value="@TimeCountForThreeMonth()">每三個月不能超過138小時~~
+                        </div>
+                    </div>
+
+                    @*<div class="form-group row">
+                            @Html.LabelFor(model => model.fSubmitDate, new { @class = "control-label col-md-3 col-sm-3 " })
+                            <div class="col-md-9 col-sm-9 ">
+                                @Html.EditorFor(model => model.fSubmitDate, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                @Html.ValidationMessageFor(model => model.fSubmitDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>*@
+                    <div class="form-group row">
+                        <div class="col-md-6 col-sm-6">
+                            @Html.LabelFor(model => model.fActiveDate, new { @class = "control-label " })
+                            @Html.EditorFor(model => model.fActiveDate, new { htmlAttributes = new { @class = "form-control", @type = "datetime-local" } })
+                            @Html.ValidationMessageFor(model => model.fActiveDate, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6 col-sm-6">
+                            @Html.LabelFor(model => model.fTimeCount, htmlAttributes: new { @class = "col-form-label label-align" })
+                            @Html.DropDownListFor(model => model.fTimeCount, TimeCountList, "請選擇時數", htmlAttributes: new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.fTimeCount, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+
+                    <div class="form-group row">
+                        <div class="col-md-12 col-sm-12">
+                            @Html.LabelFor(model => model.fReason, htmlAttributes: new { @class = "col-form-label label-align" })
+                            @Html.TextAreaFor(model => model.fReason, new { @class = "form-control", style = "height:200px" })
+                            @Html.ValidationMessageFor(model => model.fReason, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="ln_solid"></div>
+                    <div class="item form-group">
+                        <div class="col-md-12 col-sm-6 offset-md-3">
+                            <button class="btn btn-dark" type="button" id="btn_demo">平日(四小時)</button>
+                            <button class="btn btn-dark" type="button" id="btn_demoError">平日(超過上限)</button>
+                            <button class="btn btn-dark" type="button" id="btn_demoGood">假日(超過四小時)</button>
+                            <button class="btn btn-info" type="button" id="btn_clear">清空</button>
+                            <button type="submit" class="btn btn-success">送出</button>
+
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 公司加班相關法規 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <ul class="nav nav-tabs bar_tabs" id="LeaveTab" role="tablist">
+
+                    <li class="nav-平日加班">
+                        <a class="nav-link" id="平日加班-tab" data-toggle="tab" href="#平日加班" role="tab" aria-controls="a" aria-selected="true">平日加班</a>
+                    </li>
+                    <li class="nav-休息日加班">
+                        <a class="nav-link" id="休息日加班-tab" data-toggle="tab" href="#休息日加班" role="tab" aria-controls="a" aria-selected="true">休息日加班</a>
+                    </li>
+                    <li class="nav-休假日加班">
+                        <a class="nav-link" id="休假日加班-tab" data-toggle="tab" href="#休假日加班" role="tab" aria-controls="a" aria-selected="true">休假日加班</a>
+                    </li>
+                    <li class="nav-例假日加班">
+                        <a class="nav-link" id="例假日加班-tab" data-toggle="tab" href="#例假日加班" role="tab" aria-controls="a" aria-selected="true">例假日加班</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="TabContent">
+                    <script>
+                        //加班種類選擇
+                        $("#fSort").change(function () {
+                            //console.log($(this).val());
+                            let target = $(this).val();
+                            if (target == "平日加班") {
+                                $(`#${target}-tab`).click(one);
+                            }
+                            else if (target == "休息日加班") {
+                                $(`#${target}-tab`).click(two);
+                            }
+                            else if (target == "休假日加班") {
+                                $(`#${target}-tab`).click(three);
+                            }
+                            else if (target == "例假日加班") {
+                                $(`#${target}-tab`).click(four);
+                            }
+                        });
+                        //$('#平日加班-tab').click(function () {
+                        //    $("#TabContent").html("加班規則");
+                        //});
+                        document.getElementById("平日加班-tab").addEventListener("click", one);
+                        function one() {
+                            document.getElementById("TabContent").innerHTML = "<p>平日加班費：<p>" +
+                                "<p>勞動基準法第24條第1項：如雇主有使勞工每日工作時間超過8小時者，或每週工作超過40小時者，應依法給付加班費，其標準為：<p>" +
+                                "<p>(1)	延長工作時間在2小時以內者，按平日每小時工資額加給3分之1以上。<p>" +
+                                "<p>(2)	再延長工作時間在2小時以內者，按平日每小時工資額加給3分之2以上。<p>" +
+                                "<p>另加班單日不能超過4小時，當月總計不能超過46小時，每三個月總計不能超過138小時";
+                        }
+                        document.getElementById("休息日加班-tab").addEventListener("click", two);
+                        function two() {
+                            document.getElementById("TabContent").innerHTML = "<p>休息日加班費：<p>" +
+                                "<p>勞動基準法第24條第2項：雇主使勞工於第36條所定休息日工作時，應依法給付加班費，其標準為：<p>" +
+                                "<p>(1)	工作時間在2小時以內者，按平日每小時工資額另再加給1又1 / 3以上。<p>" +
+                                "<p>(2)	工作2小時後再繼續工作者，按平日每小時工資額另再加給1又2 / 3以上。<p>" +
+                                "<p>(3)	雇主使勞工於休息日工作之時間，計入勞動基準法第32條第2項所定延長工作時間總數（即必須計入一個月46小時內）。<p>" +
+                                "<p>但因天災、事變或突發事件，雇主使勞工於休息日工作之必要者，出勤工資應依勞動基準法第24條第2項規定計給，其工作時數不受勞動基準法第32條第2項規定之限制。" +
+                                "<p>另加班單日不能超過4小時，當月總計不能超過46小時，每三個月總計不能超過138小時";
+                        }
+                        document.getElementById("休假日加班-tab").addEventListener("click", three);
+                        function three() {
+                            document.getElementById("TabContent").innerHTML = "<p>國定假日及特別休假加班費：<p>" +
+                                "<p>勞動基準法第39條規定：雇主經徵得勞工同意於休假日（國定假日或特別休假）工作者，工資應加倍發給，所稱加倍發給，係指假日當日工資照給外，再加發1日工資。<p>" +
+                                "<p>另加班單日不能超過4小時，當月總計不能超過46小時，每三個月總計不能超過138小時";
+                        }
+                        document.getElementById("例假日加班-tab").addEventListener("click", four);
+                        function four() {
+                            document.getElementById("TabContent").innerHTML = "<p>例假日加班費：<p>" +
+                                "<p>勞動基準法第40條：沒有天災、事變或突發事件，雇主不得使勞工於「例假日」出勤，若因前揭原因有使勞工出勤者，該日應加倍給薪，並應給予勞工事後補假休息。<p>" +
+                                "<p>另加班單日不能超過4小時，當月總計不能超過46小時，每三個月總計不能超過138小時";
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>        
+        let empdata = JSON.parse(@Html.Raw(Json.Encode(ViewBag.emp)));
+        $("#empid").val(empdata.id);
+        $("#empname").val(empdata.name);
+        $("#emptitle").val(empdata.title);
+        $("#empdepartment").val(empdata.department);
+        $(document).ready(function () {
+            $("#平日加班-tab").click();
+            document.getElementById("TabContent").innerHTML = "<p>平日加班費：<p>" +
+                "<p>勞動基準法第24條第1項：如雇主有使勞工每日工作時間超過8小時者，或每週工作超過40小時者，應依法給付加班費，其標準為：<p>" +
+                "<p>(1)	延長工作時間在2小時以內者，按平日每小時工資額加給3分之1以上。<p>" +
+                "<p>(2)	再延長工作時間在2小時以內者，按平日每小時工資額加給3分之2以上。<p>" +
+                "<p>另加班單日不能超過4小時，當月總計不能超過46小時，每三個月總計不能超過138小時";
+        });
+        
+
+        //demo1
+        $("#btn_demo").click(function () {
+            $("#fSort").val("平日加班");
+            $("#fActiveDate").val("2020-10-16T18:00:00");
+            $("#fTimeCount").val(4);
+            $("#fReason").val("為了完成主管重要的專案，我必須要加班!!!!!");
+            //document.getElementById("平日加班-tab").onclick(one);
+            //$("#平日加班-tab").click(one);
+        });
+        //demo2
+        $("#btn_demoError").click(function () {
+            $("#fSort").val("平日加班");
+            $("#fActiveDate").val("2020-10-19T18:00:00");
+            $("#fTimeCount").val(6);
+            $("#fReason").val("平日加班，我要加六小時!!!!!");
+        });
+        //demo3
+        $("#btn_demoGood").click(function () {
+            $("#fSort").val("");
+            $("#fActiveDate").val("2020-10-17T08:00:00");
+            $("#fTimeCount").val(8);
+            $("#fReason").val("今天是休息日，為了完成專案，我需要加班八小時!");
+        });
+
+
+        //clear
+        $("#btn_clear").click(function () {
+            $("#fSort").val("");
+            $("#fActiveDate").val("");
+            $("#fTimeCount").val("");
+            $("#fReason").val("");
+        });
+        //加班種類選擇
+        $("#fSort").change(function () {
+            console.log($(this).val());
+            let target = $(this).val();
+            $(`#${target}-tab`).trigger('click');
+        });
+    </script>
+}
+
+

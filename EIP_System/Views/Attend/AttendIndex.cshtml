@@ -1,0 +1,292 @@
+﻿@model IEnumerable<EIP_System.Models.tSignoff>
+@{
+    ViewBag.Title = "Index";
+}
+
+<!--上方快捷列-->
+<div class="row">
+    <div class="col-md-3 ">
+        <a class="tile-stats bg-green-light" href="@Url.Action("PunchtimeIndex","Attend_Punchtime")">
+            <div class="icon"><i class="fa fa-check-circle-o"></i></div>
+            <div class="count">打卡簽到</div>
+            <p>好的開始從打卡開始</p>
+        </a>
+    </div>
+    <div class=" col-md-3 ">
+        <a class="tile-stats bg-green" href="@Url.Action("LeaveIndex","Attend_Leave")">
+            <div class="icon"><i class="fa fa-comments-o"></i></div>
+            <div class="count">請假申請</div>
+            <h3></h3>
+            <p>請假申請點這邊</p>
+        </a>
+    </div>
+    <div class=" col-md-3 ">
+        <a class="tile-stats bg-blue" href="@Url.Action("CreateOverTime","OverTime")">
+            <div class="icon"><i class="fa fa-sort-amount-desc"></i></div>
+            <div class="count">加班申請</div>
+            <h3></h3>
+            <p>加班須提前申請</p>
+        </a>
+    </div>
+    <div class=" col-md-3 ">
+        <a class="tile-stats bg-green-dark" href="@Url.Action("InfoIndex","Attend_Info")">
+            <div class="icon"><i class="fa fa-search"></i></div>
+            <div class="count">考勤申請紀錄</div>
+            <h3></h3>
+            <p>考勤紀錄查詢</p>
+        </a>
+    </div>
+
+
+</div>
+
+<div class="row">
+
+    <!--今日打卡狀態-->
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>今日打卡狀態</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="clock-wrapper">
+                    <div class="clock-content">
+                        <p id="date" class="date"></p>
+                        <p id="time" class="time green"></p>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="punchCardDiv">
+                        <p>上班打卡的時段07:00 ~ 09:00</p>
+                        <div class="punchCard unpunch" id="onWorkmsg">
+                            <h4>未打卡</h4>
+                        </div>
+                        <p>下班打卡的時段17:00 ~ 22:00</p>
+                        <div class="punchCard unpunch" id="offWorkmsg">
+                            <h4>未打卡</h4>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+            </div>
+        </div>
+    </div>
+
+    <!--近期考勤申請紀錄-->
+    <div class="col-md-8 col-sm-6">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>考勤申請紀錄<small>顯示最近10筆紀錄</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered table-striped" id="AttendRecordTable">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>大分類</th>
+                            <th>假別</th>
+                            <th>申請日期</th>
+                            <th>過期日期</th>
+                            <th>審核主管</th>
+                            <th>是否核准</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <div style="text-align:right; margin-top:10px">
+                <a class="btn btn-primary" href="@Url.Action("InfoIndex","Attend_Info")">查詢更多</a>
+            </div>
+        </div>
+
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>請假統計 <small>這個月假別時數統計</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <p id="LeaveTotalmsg"></p>
+                <div class="col-md-6">
+                    <canvas id="ChartLeaveTotal"></canvas>
+
+                </div>
+                <div class="col-md-6">
+                    <table id="TableLeaveTotal" class="table table-bordered"></table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+        //色票
+        var bgcolor = ["#3498DB", "#1ABB9C", "#ffc107"];
+
+        //小時鐘
+        function updateTime() {
+            let now = new moment();
+            now.locale("zh-tw");
+            let date = now.format("LL");
+            let time = now.format("hh:mm:ssA");
+            $("#date").text(date);
+            $("#time").text(time);
+        }
+        setInterval(updateTime, 1000);
+
+        $(function () {
+            $("#AttendRecordTable").DataTable({
+                //關閉搜尋相關
+                "searching": false,
+                "paging": false,
+                "info": false,
+                //加入捲動
+                "scrollY": "170px",
+                "scrollCollapse": true,
+                //照日期排序
+                "order": [[2, "desc"]],
+                "ajax": {
+                    "type": "POST",
+                    "url": "@Url.Action("getLeaverecord","Attend")",
+                    "datatype": "JSON",
+                },
+                    "columns": [
+                        {
+                            "data": "catelog", "render": function (catelog) {
+                                let show;
+                                if (catelog == "請假申請") {
+                                    show = '<span class="label bg-blue">請假申請</span>';
+                                } else if (catelog == "加班申請") {
+                                    show = '<span class="label bg-orange">加班申請</span>';
+                                } else {
+                                    show = '<span class="label bg-green">補打卡申請</span>';
+                                }
+                                return show;
+                            }
+                        },
+                    { "data": "applyclass" },
+                    { "data": "applydate" },
+                    { "data": "expireddate" },
+                    { "data": "supervisor" },
+                    {
+                        "data": "isagreed", "render": function (agree) {
+                            let show;
+                            if (agree == null) {
+                                show = '<span class="label label-primary"><i class="fa fa-clock-o">待審核</i></span>';
+                            } else if (agree == 1) {
+                                show = '<span class="label label-success"><i class="fa fa-check-square ">通過</i></span>';
+                            } else {
+                                show = '<span class="label label-danger"><i class="fa fa-remove">不通過</i></span>';
+                            }
+                            return show;
+                        }
+                    }
+
+                ],
+                "language": {
+                    "processing": "<p>載入中 ...</p>",
+                    "emptyTable": "目前沒有任何申請資料"
+                }
+
+            });
+        });
+
+        //假別圖表
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("getLeaveTotal", "Attend")",
+            dataType:"JSON"
+        }).done(function (data) {
+            console.log(data);
+            let labels = [];
+            let hours = [];
+
+            if (data.length != 0) {
+                //Table
+                let tab = document.getElementById(`TableLeaveTotal`);
+                tab.innerHTML += `<thead class="bg-primary">
+                                    <tr>
+                                        <th>假別</th>
+                                        <th>時數</th>
+                                    </tr>
+                                </thead>`;
+                $.each(data, function (i, value) {
+                    labels.push(value.label);
+                    hours.push(value.hour);
+                    tab.innerHTML += `<tr>
+                                    <td><i class="fa fa-square" style="color:${bgcolor[i]}"></i>${value.label}</td>
+                                    <td>${value.hour} 小時</td>
+                                    </tr>`;
+                })
+
+                //Chart
+                let ctx = document.getElementById(`ChartLeaveTotal`);
+                let chart = new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        datasets: [{
+                            data: hours,
+                            backgroundColor: bgcolor,
+                        }],
+                        labels: labels
+                    },
+                    options: {
+                        responsive: true,
+                        legend: {
+                            position: 'top',
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true
+                        }
+                    }
+                });
+
+            }
+            else {
+                $("#LeaveTotalmsg").text("目前沒有任何請假資訊");
+            }
+
+        });
+
+        //打卡資訊
+        let Todayrecord = JSON.parse(@Html.Raw(Json.Encode(ViewBag.Todayrecord)));
+
+
+        $.each(Todayrecord, function (i, data) {
+            if (data.status == "上班") {
+                $("#onWorkmsg").css({ "background-color": "#2196f3","border":"1px solid #eee","color":"#FFF" })
+                $("#onWorkmsg").html("<h3>上班卡 " + data.datetime +"</h3>")
+            }
+            else if (data.status == "下班") {
+                $("#offWorkmsg").css({ "background-color": "#2196f3", "border": "1px solid #eee", "color": "#FFF" })
+                $("#offWorkmsg").html("<h3>下班卡 " + data.datetime + "</h3>")
+            }
+            else if (data.status == "補打卡") {
+                $("#offWorkmsg").css({ "background-color": "#00bcd4", "border": "1px solid #eee", "color": "#FFF" })
+                $("#offWorkmsg").html("<h3>補打卡 " + data.datetime + "</h3>")
+            }
+            else if (data.status == "遲到") {
+                $("#onWorkmsg").css({ "background-color": "#ff9800", "border": "1px solid #eee", "color": "#FFF" })
+                $("#onWorkmsg").html("<h3>遲到卡 " + data.datetime + "</h3>")
+            }
+
+        });
+
+        //通知訊息
+        let Attend_msg = "@Html.Raw(TempData["Attend_msg"])";
+        if (Attend_msg != "") {
+            Swal.fire({
+                icon: 'success',
+                title: '申請成功',
+                text: Attend_msg,
+            })
+        }
+
+    </script>
+
+}
+

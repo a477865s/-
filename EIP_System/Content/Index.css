@@ -1,0 +1,152 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    list-style-type: none
+}
+.board-main {
+    overflow:auto;
+    height:400px;
+    width: 100%;
+}
+.board-select{
+    height:50px;
+    width:100%;
+    text-align:center;
+}
+.board {
+    width: 100%;
+    overflow: auto;
+    justify-content: center;
+    background-color: transparent;
+    position: relative;
+}
+
+.sup-sup {
+    padding:5px;
+    height:auto;
+    color:black;
+    display: flex;
+    width: 100%;
+    cursor:pointer;
+}
+
+    .sup-sup li {
+        font-size: larger;
+        height:20px;
+        border: none;
+        position: relative;
+    }
+    .text-hidden{
+        width:100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+        .background-board, .background-calendar {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            background-color: rgba(0,0,0,0.5);
+            position: absolute;
+            top: 0;
+        }
+.calendar {
+    position: relative;
+    height: 605px;
+    width: 100%;
+}
+/*checkmark*/
+svg {
+    width: 100px;
+    display: none;
+}
+
+.path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+}
+
+.check {
+    stroke-dashoffset: -100;
+    -webkit-animation: dash-check .9s .35s ease-in-out forwards;
+    animation: dash-check .9s .35s ease-in-out forwards;
+}
+
+
+
+@-webkit-keyframes dash {
+    0% {
+        stroke-dashoffset: 1000;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dashoffset: 1000;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@-webkit-keyframes dash-check {
+    0% {
+        stroke-dashoffset: -100;
+    }
+
+    100% {
+        stroke-dashoffset: 900;
+    }
+}
+
+@keyframes dash-check {
+    0% {
+        stroke-dashoffset: -100;
+    }
+
+    100% {
+        stroke-dashoffset: 900;
+    }
+}
+
+.loader {
+    border: 12px solid transparent;
+    border-radius: 50%;
+    border-top: 12px solid white;
+    width: 70px;
+    height: 70px;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

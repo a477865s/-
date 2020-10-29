@@ -1,0 +1,286 @@
+﻿@model EIP_System.ViewModels.VMPunchtimeApply
+@{
+    ViewBag.Title = "PunchtimeIndex";
+}
+
+<div class="row">
+    <!--今日打卡狀態-->
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>今日打卡狀態</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <!--時鐘-->
+                <div class="clock-wrapper">
+                    <div class="clock-content">
+                        <p id="date" class="date"></p>
+                        <p id="time" class="time green"></p>
+                    </div>
+                </div>
+                <hr />
+                <!--打卡IP取得-->
+                <div class="row">
+                    <button class="btn btn-primary btn-lg btn-block" onclick="punchTime(false)" id="btn_punchTime">打卡</button>
+                    <p>
+                        取得用戶端 IP:@ViewBag.REMOTE_ADDR <i class="fa fa-check green" id="isPassIcon"></i><span id="isPassmsg" style="color:green"></span>
+                    </p>
+                    <!--顯示取得IP狀態-->
+                    <script>
+                        let isPass = "@ViewBag.isPass";
+                        $("#isPassmsg").text("允許IP");
+                        //if (isPass != "False") {
+                        //    $("#isPassmsg").text("允許IP");
+                        //    $("#isPassIcon").addClass("fa fa-check green");
+                        //}
+                        //else {
+                        //    $("#isPassmsg").text("不允許IP");
+                        //    $("#isPassIcon").addClass("fa fa-close red");
+                        //}
+
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日曆 -->
+    <div class="col-md-8 col-sm-8 ">
+        <div class="x_panel">
+            <div id='calendar'></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog " role="document">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h2 class="modal-title" id="exampleModalLabel" style="text-align: center;color:#fff">補打卡申請</h2>
+
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("punchTimeApply", "Attend_Punchtime", FormMethod.Post, new { @id = "formPunchtime" }))
+                {
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+
+                            <input type="text" name="applyId" id="applyId" hidden="hidden" />
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">申請人</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="EmpId" id="EmpId" class="form-control" value="@ViewBag.Empname" readonly="readonly" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">打卡型別</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="sort" id="sort" class="form-control" readonly="readonly" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">事由</label>
+                                <div class="col-md-12">
+                                    <textarea class="form-control" cols="20" id="reason" name="reason" rows="2" style="height:200px"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">審核主管</label>
+                                <div class="col-md-12">
+                                    @Html.DropDownList("supervisorId", (IEnumerable<SelectListItem>)ViewBag.supervisors, htmlAttributes: new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-md-offset-2">
+                                <label class="control-label col-md-12">申請次數:@ViewBag.applycount</label>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <div class="col-md-8 col-md-offset-2">
+                    <button type="button" class="btn btn-primary" id="showAdd" onclick="submit()">送出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+
+        $(function () {
+            //載入calendar資料
+            LoadcalendarData();
+        });
+
+        //ajax呼叫載入Fullcalendar
+        function LoadcalendarData() {
+                // ajax新寫法
+                $.ajax({
+                    method: "POST",
+                    url: "@Url.Action("getEmpPunchtimes", "Attend_Punchtime")",
+                    dataType:"JSON"
+                }).done(function (data) {
+                    GenerateCalendar(data);
+                });
+        }
+
+        //生成 Fullcalendar
+        function GenerateCalendar(events) {
+            let calendarEl = document.getElementById('calendar');
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                locale: "zh-tw",
+                buttonIcons: false, // show the prev/next text
+                weekNumbers: true,
+                navLinks: false, // can click day/week names to navigate views
+                editable: false,
+                dayMaxEvents: true, // allow "more" link when too many events
+
+                eventOrder: 'displayOrder', //排序events用
+                events: events,
+                eventClick: function (data) {
+                    console.log(data.event);
+
+                    if (data.event.title == "遲到" || data.event.title == "未打卡") {
+                        //載表單值
+                        $("#applyId").val(data.event.id);
+                        $("#sort").val(data.event.title);
+
+                        Swal.fire({
+                            icon: "question",
+                            title: data.event.title,
+                            text: data.event.extendedProps.description,
+                            showCancelButton: true,
+                            confirmButtonText: `申請補打卡`,
+                            cancelButtonText:`關閉`
+                        }).then((result) => {
+                            /* Read more about isConfirmed, isDenied below */
+                            if (result.isConfirmed) {
+                                showModal();
+                            }
+                        })
+                    }
+                    else {
+                        Swal.fire({
+                            icon: "info",
+                            title: data.event.title,
+                            text: data.event.extendedProps.description,
+                        })
+                    }
+
+                }
+
+            });
+            calendar.render();
+
+        }
+
+        //小時鐘
+        function updateTime() {
+            let now = new moment();
+            now.locale("zh-tw");
+            let date = now.format("LL");
+            let time = now.format("hh:mm:ssA");
+            $("#date").text(date);
+            $("#time").text(time);
+        }
+        setInterval(updateTime, 1000);
+
+        //打卡
+        function punchTime(isDemo) {
+            var punchTime;
+            if (isDemo == true) {
+                punchTime = $("#Demodatetime").val();
+                console.log(punchTime);
+            }
+            else {
+                let now = new moment();
+                punchTime = now.format("YYYY-MM-DDTHH:mm:ss");
+            }
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("punchTime", "Attend_Punchtime")",
+                data: { now: punchTime, isDemo: isDemo },
+                success: function (response) {
+                    //console.log(response);
+                    Swal.fire({
+                        icon: response.msg_type,
+                        text: response.msg,
+                    })
+
+                    //重新載入calendar資料
+                    LoadcalendarData();
+                },
+                error: function (err) {
+                    console.log(`Ajax error: ${err.status} - ${err.statusText}`);
+                }
+            });
+
+        }
+
+        //顯示 視窗
+        function showModal() {
+            $("#myModal").modal("show");
+        }
+
+        //送出表單
+        function submit() {
+            var data = $("#formPunchtime").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("punchTimeApply", "Attend_Punchtime")",
+                data: data,
+            }).done(function (data) {
+                $("#myModal").modal('hide');
+
+                if (data == "success") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '申請成功',
+                        text: '補打卡申請已送出',
+                    })
+                }
+                else if (data == "same") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '申請失敗',
+                        text: '該打卡已經申請過了',
+                    })
+                }
+                else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '申請失敗',
+                        text: '您已超過申請上限了',
+                    })
+                }
+
+            });
+        }
+    </script>
+}

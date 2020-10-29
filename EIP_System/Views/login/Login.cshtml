@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "login";
+    Layout = null;
+}
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/vendor/bootstrap/css/bootstrap.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/vendor/animate/animate.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/vendor/css-hamburgers/hamburgers.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/vendor/select2/select2.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/css/util.css">
+    <link rel="stylesheet" type="text/css" href="~/Plugin/Login_V1/css/main.css">
+    <!--===============================================================================================-->
+</head>
+<div class="limiter">
+    <div class="container-login100" style="background:#4578a5">
+        <div class="wrap-login100" style="padding:60px 130px 60px 95px;">
+            <div class="login100-pic js-tilt" data-tilt>
+                <img src="~/Content/img/login_cover.jpg" />
+            </div>
+            <hr class="my-4" style="border-color:gray">
+            <form class="login100-form validate-form" action="" method="post" id="demo-form">
+                <span class="login100-form-title">
+                    EIP-System Login
+                </span>
+                <input style="display:none" id="isDemo" name="isDemo" />
+                <p id="alertinfo" style="color:red">@ViewBag.info</p>
+                <div class="wrap-input100">
+                    <input class="input100" type="text" id="acc" name="acc" style="width:100%" placeholder="請輸入帳號" />
+                    <span class="focus-input100"></span>
+                    <span class="symbol-input100">
+                        <i class="fa fa-user" aria-hidden="true"></i>
+                    </span>
+                </div>
+                <div class="wrap-input100">
+                    <input class="input100" type="password" id="pw" name="pw" style="width:100%" placeholder="請輸入密碼" />
+                    <span class="focus-input100"></span>
+                    <span class="symbol-input100">
+                        <i class="fa fa-lock" aria-hidden="true"></i>
+                    </span>
+                </div>
+                <div class="g-recaptcha" name="g-recaptcha" style="width:100%" data-sitekey="6Lcay9YZAAAAAOrVIEByfIS5_UE_QNh1rhwYBHYc"></div>
+                <div class="container-login100-form-btn">
+                    <input class="login100-form-btn" style="cursor:pointer" type="submit" value="登入" id="formsubmit">
+                </div>
+
+                <div style="margin-top:15px; ">
+                    @*<input id="demo1" class="btn btn-primary " style="display:inline-block;border-radius: 18px;margin:5px;background-color: #8795d6;cursor:pointer" type="button" value="資訊部經理" />*@
+                    <input id="demo3" class="btn btn-primary " style="display:inline-block;border-radius: 18px;margin:5px;background-color: #8795d6;cursor:pointer" type="button" value="主管" />
+                    <input id="demo2" class="btn btn-primary " style="display:inline-block;border-radius: 18px;margin:5px;background-color: #8795d6;cursor:pointer" type="button" value="專員" />
+                </div>
+
+               @*<div style="margin-top:15px;">
+                    <div class="col-md-6">
+                        <input id="demo1" class="btn btn-primary " style="display:inline-block;margin-right:15px;border-radius: 18px;background-color: #8795d6;" type="button" value="資訊部經理" />
+                        <input id="demo2" class="btn btn-primary " style="display:inline-block;border-radius: 18px;background-color: #8795d6;" type="button" value="資訊部專員" />
+                        <input id="demo3" class="btn btn-primary " style="display:inline-block;margin-right:15px;border-radius: 18px;background-color: #8795d6;" type="button" value="主管" />
+                        <input id="demo4" class="btn btn-primary " style="display:inline-block;margin-right:15px;border-radius: 18px;background-color: #8795d6;" type="button" value="人資" />
+                    </div>
+                </div>*@
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://www.google.com/recaptcha/api.js"></script>
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="~/Plugin/Login_V1/vendor/bootstrap/js/popper.js"></script>
+<script src="~/Plugin/Login_V1/vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+<script src="~/Plugin/Login_V1/vendor/select2/select2.min.js"></script>
+<script src="~/Plugin/Login_V1/vendor/tilt/tilt.jquery.min.js"></script>
+<script>
+    $('.js-tilt').tilt({
+        scale: 1.1
+    })
+</script>
+<!--===============================================================================================-->
+<script src="~/Plugin/Login_V1/js/main.js"></script>
+<script>
+    let auth = '';
+    $("#formsubmit").click(function () {
+        if (grecaptcha.getResponse() != "")
+            $("#demo-form").submit();
+        else if (auth != '')
+            $("#demo-form").submit();
+        else
+            $("#alertinfo").html("請確認是否為機器人")
+    })
+
+    $("#demo1").click(function () { auth = 1; $("#isDemo").val("t"); $("#acc").val("D296440216"); $("#pw").val("d11111") })
+    $("#demo2").click(function () { auth = 1; $("#isDemo").val("t"); $("#acc").val("H297842245"); $("#pw").val("r11111") })
+    $("#demo3").click(function () { auth = 1; $("#isDemo").val("t"); $("#acc").val("G297294186"); $("#pw").val("g11111") })
+    //$("#demo4").click(function () { $("#acc").val("B120593889"); $("#pw").val("x11111") })
+</script>
+
+<style>
+    .btn-primary{
+        border:0px;
+    }
+</style>

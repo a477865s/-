@@ -1,0 +1,164 @@
+﻿@{
+    ViewBag.Title = "histroyRecord";
+}
+<!--歷史紀錄查詢-->
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 歷史紀錄查詢 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+
+
+                <!--查詢選單 -->
+                <div class="item form-group">
+
+                    <label class="col-form-label col-md-3 col-sm-3 label-align">
+                        員工
+                    </label>
+                    <div class="col-md-6 col-sm-6 ">
+                        <input name="empKeyWord" id="empKeyWord" class="form-control" type="text" required="required" placeholder="員工姓名或員編">
+                        <span style="display:none;color:red">請輸入欲查詢員工</span>
+                    </div>
+
+                    <label class="col-form-label col-md-3 col-sm-3 label-align">
+                        開始時間
+                    </label>
+                    <div class="col-md-6 col-sm-6 ">
+                        <input name="startTime" id="startTime" class="form-control" type="date" required="required">
+                        <span style="display:none;color:red;">請選擇日期</span>
+                    </div>
+
+                    <label class="col-form-label col-md-3 col-sm-3 label-align">
+                        結束時間
+                    </label>
+                    <div class="col-md-6 col-sm-6 ">
+                        <input name="endTime" id="endTime" class="form-control" type="date" required="required">
+                        <span style="display:none;color:red;">請選擇日期</span>
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 ">
+                        <btn class="btn btn-info" id="searchRecord">查詢</btn>
+                        <span style="display:none;color:red;">請選擇正確區間</span>
+                    </div>
+                </div>
+
+
+                <table class="table table-bordered" id="HistroyRecordList">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>日期</th>
+                            <th>案號</th>
+                            <th>員編</th>
+                            <th>案名</th>
+                            <th>階段</th>
+                            <th>任務</th>
+                            <th>時數</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+
+<script>
+    //取得歷史工作紀錄
+    var histroyRecordTable;
+
+    $("#searchRecord").click(function () {
+
+        $("#HistroyRecordList").DataTable().destroy()
+        var jsonObj = @Html.Raw(Json.Encode(ViewBag.emp));
+        let empKeyWord = $("#empKeyWord").val();
+        let start = $("#startTime").val();
+        let end = $("#endTime").val();
+        let empt = false
+        if (empKeyWord != "") {
+            console.log(jsonObj)
+            for (let e in jsonObj) {
+                if (jsonObj[e].fEmployeeId.toString().match(empKeyWord) || jsonObj[e].fName.match(empKeyWord) || jsonObj[e].fName == empKeyWord || jsonObj[e].fEmployeeId.toString() == empKeyWord) {
+                    empt = true
+                    break;
+                }
+                else {
+                    empt=false
+                    continue;
+                }
+            }
+        }        
+        if (new Date(start) > new Date(end)) {
+            $("#startTime+span").hide();
+            $("#endTime+span").hide();
+            $("#searchRecord+span").show();
+        }
+        else if (start == "" || end == "") {
+            $("#startTime+span").show();
+            $("#endTime+span").show();
+        }
+        else if (empKeyWord == "") {
+            $("#empKeyWord+span").text("請輸入欲查詢員工").show();
+            $("#startTime+span").hide();
+            $("#endTime+span").hide();
+        } else if (!empt) {
+            $("#empKeyWord+span").text("查無此員工編號").show();
+        } 
+        else {
+            $("#empKeyWord+span").show();
+            $("#startTime+span").show();
+            $("#endTime+span").show();
+        }
+        if (start != "" && end != "" && empt == true && new Date(start) < new Date(end)) {
+            $("#startTime+span").hide();
+            $("#endTime+span").hide();
+            $("#empKeyWord+span").hide();
+            $("#searchRecord+span").hide();
+
+            histroyRecordTable =
+                $("#HistroyRecordList").DataTable({
+                    "ajax": {
+                        "type": "POST",
+                        "url": "@Url.Action("Search", "ProjectSignoff")",
+                        "data": { emp: empKeyWord, startTime: start, endTime: end },
+                    },
+                    "columns": [
+                        
+                        { "data": "date" },
+                        { "data": "projectId" },
+                        { "data": "employeeId" },
+                        { "data": "projectName" },
+                        { "data": "levelName" },
+                        { "data": "taskName" },
+                        { "data": "time" },
+                        {
+                            "data": "approve", "render": function (agree) {
+                                console.log(agree);
+                                let show;
+                                if (agree == "同意") {
+                                    show = '<span class="label label-success">審核通過</span>';
+                                } else if (agree == "不同意") {
+                                    show = '<span class="label label-danger">不通過</span>';
+                                } else {
+                                    show = '<span class="label label-primary">待審核</span>';
+                                }
+                                return show;
+                            }
+                        },
+                    ],
+                    "language": {
+                        "processing": "<p>載入中</p>",
+                        "emptyTable": "沒有任何資料，請按[新增]按鈕來新增資料"
+                    }
+                });
+            histroyRecordTable.ajax.reload();
+
+        }
+    })
+
+</script>
+
+}

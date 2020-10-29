@@ -1,0 +1,220 @@
+﻿@model EIP_System.ViewModels.VMLeave
+@{
+    ViewBag.Title = "LeaveIndex";
+}
+
+<style>
+    .nav-link {
+        font-size:14px;
+    }
+</style>
+<div class="row">
+    <!--請假申請-->
+    <div class="col-md-6 col-sm-6 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>請假申請</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                @using (Html.BeginForm("CreateLeave", "Attend_Leave"))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <h3>員工基本資料</h3>
+                        <div class="form-group row">
+                            <div class="col-md-4 col-sm-4">
+                                <label>員工編號</label>
+                                <input type="text" class="form-control" id="empid" readonly="readonly" />
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                <label>員工姓名</label>
+                                <input type="text" class="form-control" id="empname" readonly="readonly" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4 col-sm-4">
+                                <label>員工職稱</label>
+                                <input type="text" class="form-control" id="emptitle" readonly="readonly" />
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                <label>員工部門</label>
+                                <input type="text" class="form-control" id="empdepartment" readonly="readonly" />
+                            </div>
+                        </div>
+                        <hr />
+                        <h3>請假資料</h3>
+                        <div class="form-group row">
+                            <div class="col-md-6 col-sm-6">
+                                @Html.LabelFor(m => m.leavesort, new { @class = "control-label" })
+                                @Html.DropDownList("leavesort", (IEnumerable<SelectListItem>)ViewBag.leaves, htmlAttributes: new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.leavesort, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-6 col-sm-6">
+                                @Html.LabelFor(m => m.start, new { @class = "control-label " })
+                                @Html.EditorFor(m => m.start, new { htmlAttributes = new { @class = "form-control", @type = "datetime-local", onblur = "counthours();" } })
+                                @Html.ValidationMessageFor(m => m.start, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                @Html.LabelFor(m => m.end, new { @class = "control-label " })
+                                @Html.EditorFor(m => m.end, new { htmlAttributes = new { @class = "form-control", @type = "datetime-local", onblur = "counthours();" } })
+                                @Html.ValidationMessageFor(m => m.end, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-6 col-sm-6">
+                                @Html.LabelFor(m => m.timecount, new { @class = "control-label" })
+                                @Html.EditorFor(m => m.timecount, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                @Html.ValidationMessageFor(m => m.timecount, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                @Html.LabelFor(m => m.supervisorId, new { @class = "control-label" })
+                                @Html.DropDownList("supervisorId", (IEnumerable<SelectListItem>)ViewBag.supervisors, htmlAttributes: new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.leavesort, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-12 col-sm-12">
+                                @Html.LabelFor(m => m.reason, new { @class = "control-label " })
+                                @Html.TextAreaFor(m => m.reason, new { @class = "form-control", style = "height:200px" })
+                                @Html.ValidationMessageFor(m => m.reason, "", new { @class = "text-danger" })
+                            </div>
+
+                        </div>
+
+                        <div class="ln_solid"></div>
+                        <div class="item form-group">
+                            <div class="col-md-12 col-sm-12">
+                                <button type="submit" id="Leave-sub" class="btn btn-success">送出</button>
+                                <button class="btn btn-info" type="button" id="btn_clear">清空</button>
+                                <button class="btn btn-dark btn-demo" type="button" id="btn_demo_事假">事假</button>
+                                <button class="btn btn-dark btn-demo" type="button" id="btn_demo_普通傷病假">普通傷病假</button>
+                                <button class="btn btn-dark btn-demo" type="button" id="btn_demo_特休假">特休假</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!--公司請假相關法規-->
+    <div class="col-md-6 col-sm-6">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 公司請假相關法規 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <ul class="nav nav-tabs bar_tabs" id="Tabs" role="tablist">
+                </ul>
+                <div class="tab-content" id="TabContent">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function () {
+            //err_msg
+            let Attend_msg = "@Html.Raw(TempData["Attend_err_msg"])";
+            if (Attend_msg != "") {
+                Swal.fire({
+                    icon: 'error',
+                    title: '申請失敗',
+                    text: Attend_msg,
+                })
+            }
+
+            //取得ViewBag回傳 該名員工基本資料
+            let empdata = JSON.parse(@Html.Raw(Json.Encode(ViewBag.emp)));
+
+            $("#empid").val(empdata.id);
+            $("#empname").val(empdata.name);
+            $("#emptitle").val(empdata.title);
+            $("#empdepartment").val(empdata.department);
+
+            //取得ViewBag回傳 leavelist
+            let leavelist = JSON.parse(@Html.Raw(Json.Encode(ViewBag.leavelist)));
+
+            //轉成HTML tabs
+            $.each(leavelist, function (i, data) {
+                $("#Tabs").append(
+                    ` <li class="nav-${data.name} ${(i == 0) ? 'active' : ''}">
+                        <a class="nav-link" id="${data.name}-tab" data-toggle="tab" href="#${data.name}" role="tab" aria-controls="a" aria-selected="true">${data.name}</a>
+                        </li>`
+                );
+            });
+            //轉成HTML tab-content
+            $.each(leavelist, function (i, data) {
+                $("#TabContent").append(
+                    `<div class="tab-pane fade ${(i == 0) ? 'active in' : ''}" id="${data.name}" role="tabpanel" aria-labelledby="${data.name}-tab">
+                        <div style="height:360px">
+                            ${data.content}
+                        </div>
+                    </div>`
+                );
+
+            });
+
+        });
+        //時間自動計算
+        function counthours() {
+            //use monent.js
+            let start = moment($("#start").val());
+            let end = moment($("#end").val());
+            let duration = moment.duration(end.diff(start));
+
+            let days = duration.days();
+            let hours = duration.asHours();
+
+            let duration_hours = hours - (days * 16);
+            $("#timecount").val(duration_hours);
+        }
+
+        //假別選擇
+        $("#leavesort").change(function () {
+            console.log($(this).val());
+            let target = $(this).val();
+            $(`#${target}-tab`).trigger('click');
+        });
+
+        //demo
+        $("#btn_demo_事假").click(function () {
+            $("#leavesort").val("事假");
+            $("#start").val("2020-10-19T09:00");
+            $("#end").val("2020-10-19T17:00");
+            $("#timecount").val(8);
+            $("#reason").val("(測試用)家裡突然有急事");
+        });
+
+        //demo
+        $("#btn_demo_普通傷病假").click(function () {
+            $("#leavesort").val("普通傷病假");
+            $("#start").val("2020-10-20T09:00");
+            $("#end").val("2020-10-20T17:00");
+            $("#timecount").val(8);
+            $("#reason").val("(測試用)病重須在家休養");
+        });
+
+        //demo
+        $("#btn_demo_特休假").click(function () {
+            $("#leavesort").val("特休假");
+            $("#start").val("2020-10-21T09:00");
+            $("#end").val("2020-10-21T17:00");
+            $("#timecount").val(8);
+            $("#reason").val("(測試用)休假來調整身心");
+        });
+    </script>
+}
+

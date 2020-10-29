@@ -1,0 +1,401 @@
+﻿@model EIP_System.ViewModels.VMCOvertime
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="row">
+    <div class="col-md-3 ">
+        <a class="tile-stats bg-green" href="#">
+            <div class="icon"><i class="fa fa-check-circle-o"></i></div>
+            <div class="count">快速打卡</div>
+            <p>你今天還沒打卡</p>
+        </a>
+    </div>
+    <div class=" col-md-3 ">
+        <a class="tile-stats bg-blue" href="#">
+            <div class="icon"><i class="fa fa-comments-o"></i></div>
+            <div class="count">請假申請</div>
+            <h3></h3>
+            <p>請假申請點這邊</p>
+        </a>
+    </div>
+    <div class=" col-md-3 ">
+        <div class="tile-stats bg-orange">
+            <div class="icon"><i class="fa fa-sort-amount-desc"></i></div>
+            <div class="count">加班申請</div>
+            <h3></h3>
+            <p>加班須提前申請</p>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="row">
+
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>今日打卡 <small>@DateTime.Now.ToString("yyyy-MM-dd")</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="tile-stats bg-blue">
+                    <div class="icon"><i class="fa fa-check-circle-o"></i></div>
+                    <div class="count">上班簽到</div>
+                    <p>已打卡</p>
+                </div>
+                <div class="tile-stats bg-red">
+                    <div class="icon"><i class="fa fa-close"></i></div>
+                    <div class="count">下班簽到</div>
+                    <p>未打卡</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 col-sm-6">
+        <div class="x_panel tile">
+            <div class="x_title">
+                <h2>加班紀錄<small>顯示最近10筆紀錄</small></h2>
+                <div class="clearfix"></div>
+
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered table-striped" id="leaveRecord">
+
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>員工編號</th>
+                            <th>假種</th>
+                            <th>申請日期</th>
+                            <th>開始日期</th>
+                            <th>時數</th>
+                            <th>是否核准</th>
+                        </tr>
+                    </thead>
+
+                </table>
+                <div style="text-align:right">
+                    <button class="btn btn-outline-info">查詢更多</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 加班資訊 -->
+<div class="x_title">
+    <h3>加班資訊</h3>
+    <div class="clearfix"></div>
+</div>
+<div class="row">
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel fixed_height_320">
+            <div class="x_title">
+                <h2>App Devices <small>Sessions</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li>
+                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#">Settings 1</a>
+                            <a class="dropdown-item" href="#">Settings 2</a>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <h4>App Versions</h4>
+                <div class="widget_summary">
+                    <div class="w_left w_25">
+                        <span>1.5.2</span>
+                    </div>
+                    <div class="w_center w_55">
+                        <div class="progress">
+                            <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 66%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <span>123k</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="widget_summary">
+                    <div class="w_left w_25">
+                        <span>1.5.3</span>
+                    </div>
+                    <div class="w_center w_55">
+                        <div class="progress">
+                            <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 45%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <span>53k</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="widget_summary">
+                    <div class="w_left w_25">
+                        <span>1.5.4</span>
+                    </div>
+                    <div class="w_center w_55">
+                        <div class="progress">
+                            <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 25%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <span>23k</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="widget_summary">
+                    <div class="w_left w_25">
+                        <span>1.5.5</span>
+                    </div>
+                    <div class="w_center w_55">
+                        <div class="progress">
+                            <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <span>3k</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="widget_summary">
+                    <div class="w_left w_25">
+                        <span>0.1.5.6</span>
+                    </div>
+                    <div class="w_center w_55">
+                        <div class="progress">
+                            <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 2%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <span>1k</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel tile fixed_height_320">
+            <div class="x_title">
+                <h2>Daily users <small>Sessions</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li>
+                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#">Settings 1</a>
+                            <a class="dropdown-item" href="#">Settings 2</a>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="" style="width:100%">
+                    <tr>
+                        <th style="width:37%;">
+                            <p>Top 5</p>
+                        </th>
+                        <th>
+                            <div class="col-lg-7 col-md-7 col-sm-7 ">
+                                <p class="">Device</p>
+                            </div>
+                            <div class="col-lg-5 col-md-5 col-sm-5 ">
+                                <p class="">Progress</p>
+                            </div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <canvas class="canvasDoughnut" height="140" width="140" style="margin: 15px 10px 10px 0"></canvas>
+                        </td>
+                        <td>
+                            <table class="tile_info">
+                                <tr>
+                                    <td>
+                                        <p><i class="fa fa-square blue"></i>IOS </p>
+                                    </td>
+                                    <td>30%</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><i class="fa fa-square green"></i>Android </p>
+                                    </td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><i class="fa fa-square purple"></i>Blackberry </p>
+                                    </td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><i class="fa fa-square aero"></i>Symbian </p>
+                                    </td>
+                                    <td>15%</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p><i class="fa fa-square red"></i>Others </p>
+                                    </td>
+                                    <td>30%</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6 ">
+        <div class="x_panel fixed_height_320">
+            <div class="x_title">
+                <h2>Profile Settings <small>Sessions</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li>
+                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#">Settings 1</a>
+                            <a class="dropdown-item" href="#">Settings 2</a>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="dashboard-widget-content">
+                    <ul class="quick-list">
+                        <li><i class="fa fa-line-chart"></i><a href="#">Achievements</a></li>
+                        <li><i class="fa fa-thumbs-up"></i><a href="#">Favorites</a></li>
+                        <li><i class="fa fa-calendar-o"></i><a href="#">Activities</a></li>
+                        <li><i class="fa fa-cog"></i><a href="#">Settings</a></li>
+                        <li><i class="fa fa-area-chart"></i><a href="#">Logout</a></li>
+                    </ul>
+
+                    <div class="sidebar-widget">
+                        <h4>Profile Completion</h4>
+                        <canvas width="150" height="80" id="chart_gauge_01" class="" style="width: 160px; height: 100px;"></canvas>
+                        <div class="goal-wrapper">
+                            <span id="gauge-text" class="gauge-value gauge-chart pull-left">0</span>
+                            <span class="gauge-value pull-left">%</span>
+                            <span id="goal-text" class="goal-value pull-right">100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("#leaveRecord").DataTable({
+                //關閉搜尋相關
+                "searching": false,
+                "paging": false,
+                "info": false,
+
+                "ajax": {
+                    "type": "POST",
+                    "url": "@Url.Action("getOverTimeRecord", "OverTime")",
+                    "datatype": "JSON",
+                },
+                "columns": [
+                    { "data": "fEmployeeId" },
+                    { "data": "fSort" },
+                    {
+                        "data": "fSubmitDate", "render": function (d) {
+                            jsDate = new Date(parseInt(d.substr(6)));
+                            console.log(jsDate)
+                            year = jsDate.getFullYear();
+                            month = jsDate.getMonth() + 1;
+                            date = jsDate.getDate();
+
+                            month = month >= 10 ? month : "0" + month;
+                            date = date >= 10 ? date : "0" + date;
+                            result = `${year}-${month}-${date}`;
+                            return result;
+                        } },
+                    { "data": "fActiveDate" , "render": function (d) {
+                            jsDate = new Date(parseInt(d.substr(6)));
+                            console.log(jsDate)
+                            year = jsDate.getFullYear();
+                            month = jsDate.getMonth() + 1;
+                            date = jsDate.getDate();
+
+                            month = month >= 10 ? month : "0" + month;
+                            date = date >= 10 ? date : "0" + date;
+                            result = `${year}-${month}-${date}`;
+                            return result;
+                        }},
+                    { "data": "fTimeCount" },
+                    {
+                        "data": "isAgree", "render": function (agree) {
+                            let show;
+                            if (agree == null) {
+                                show = '<div class=""><i class="fa fa-clock-o">待審核</i></div>';
+                            } else if (agree == 1) {
+                                show = '<div class="green"><i class="fa fa-check-square ">通過</i></div>';
+                            } else {
+                                show = '<div class="red"><i class="fa fa-remove">不通過</i></div>';
+                            }
+                            return show;
+                        }
+                    }
+
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "目前沒有任何申請資料"
+                }
+
+            });
+        });
+
+    </script>
+
+}
+

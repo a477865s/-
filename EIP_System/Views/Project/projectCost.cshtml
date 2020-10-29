@@ -1,0 +1,360 @@
+﻿@model EIP_System.ViewModels.CVM_BudgetLevel
+
+@{
+    ViewBag.Title = "cost";
+    int levelNumber = Model.levels.Count();
+    int wage = Convert.ToInt32(Model.budget.fSalaryHour);
+
+    var levelNames = Json.Encode(ViewBag.LevelName);
+    var levelCosts = Json.Encode(ViewBag.LevelCost);
+    var taskNames = Json.Encode(ViewBag.TaskName);
+    var taskCosts = Json.Encode(ViewBag.TaskCost);
+    var month = Json.Encode(ViewBag.Month);
+    var accumulateCost = Json.Encode(ViewBag.AccumulateCost);
+    var allcost = ViewBag.Allcost;
+
+    var creatdDate = ViewBag.CreatdDate;
+    var dateline = ViewBag.Dateline;
+    var progress = ViewBag.Progress;
+    var budgetRate = ViewBag.BudgetRate;
+
+    var money = (@Model.budget.fBudget - allcost).ToString("C0");
+}
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+</style>
+
+<div class="form-horizontal">
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="">
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 ">
+                <div class="x_panel">
+                    <div class="x_title">
+
+                        <h2>@Model.budget.tProject.fProjectName @Model.budget.tProject.fProjectId </h2>
+                        <div style="float: right; display: block; padding-right: 10px;">
+                            <a class="btn btn-primary" href="@Url.Action("Dashboard", "ProjectDashboard", new { prjId = @Model.budget.fProjectId })">回儀錶板</a>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+
+                    <div class="container">
+                        <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+
+                            <li class="nav-item">
+                                <a class="nav-link active" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nowpage" id="cost" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">成本統計</a>
+                            </li>
+                        </ul>
+
+                        <div class="x_content">
+                            <div class="col-md-3 col-sm-3  ">
+                                <section class="panel">
+                                    <div class="panel-body">
+                                        <h2 class="green">
+                                            <i class="fa fa-paint-brush"></i> 目前成本統計
+                                        </h2>
+                                        <br />
+                                    </div>
+                                </section>
+                                <div class="panel-body">
+                                    <br />
+                                </div>
+                                <div class="project_detail">
+                                    <h3 class="m-h3">專案完成率</h3>
+                                    <div class="progress ">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @progress%;" aria-valuenow="@progress%" aria-valuemin="0" aria-valuemax="100">@progress%</div>
+                                    </div>
+                                    <h3 class="m-h3">預算執行率</h3>
+                                    <div class="progress ">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @budgetRate%;" aria-valuenow="@budgetRate%" aria-valuemin="0" aria-valuemax="100">@budgetRate%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-9 col-sm-9  ">
+                                <ul class="stats-overview">
+                                    <li>
+                                        <h2 class="name"> 累積費用 </h2>
+                                        <h2 class="value text-success">
+                                            <b>@allcost.ToString("C0")</b>
+                                        </h2>
+                                    </li>
+                                    <li>
+                                        <h2 class="name"> 總預算 </h2>
+                                        <h2 class="value text-success">
+
+                                            <b>@Model.budget.fBudget.Value.ToString("C0")</b>
+                                        </h2>
+                                    </li>
+                                    <li class="hidden-phone">
+                                        <h2 class="name"> 剩餘預算 </h2>
+                                        <h2 class="value text-success">
+                                            <b>@money</b>
+                                        </h2>
+                                    </li>
+                                </ul>
+                                <br />
+
+                                <div class="row">
+                                    <div class="col-md-6 col-sm-6  ">
+                                        <h2>
+                                            累積費用
+                                        </h2>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="x_content">
+                                        <canvas id="lineChart" width="1152" height="350"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-sm-6" >
+    <div class="x_panel" style="height:500px">
+        <div class="x_title">
+            <h2>
+                各階段費用統計
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <div class="col-md-6">
+                <canvas id="levelCost" height="250" width="250"></canvas>
+            </div>
+            <div class="col-md-6">
+                @*<table id="levelTable"  style="width:100%;margin-top:100px" ></table>*@
+                <table id="levelTable" class="table">
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-sm-6  ">
+    <div class="x_panel" style="height:500px">
+        <div class="x_title">
+            <h2>
+                各任務費用統計
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <canvas id="mybarChart"></canvas>
+        </div>
+    </div>
+    
+</div>
+
+<style>
+    .nowpage {
+        color: #1abb9c;
+        background-color: white !important;
+    }
+
+    h3 {
+        font-size: 18px;
+        color: #3f5265;
+        font-weight: bold;
+    }
+
+    .m-h3 {
+        font-size: 18px;
+        color: #3f5265;
+        font-weight: 500;
+    }
+
+    .name {
+        font-size: 18px !important;
+    }
+
+    h2 > b {
+        font-size: 18px !important;
+    }
+
+    .stats-overview {
+        padding-top: 22px;
+    }
+</style>
+
+
+@section scripts{
+    <script>
+
+        var color = ["#455C73","#3498DB","#26B99A"];
+
+    // Doughnut chart
+    var ctxPie = document.getElementById("levelCost");
+    var pieChart = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: @Html.Raw(levelNames),
+    datasets: [{
+        data: @Html.Raw(levelCosts),
+        backgroundColor: color,
+            }],
+        },
+    options: {
+        responsive: true,
+            tooltips: {
+            mode: 'point',
+                intersect: true,
+            },
+        legend: {
+            position: 'bottom',
+            display: false,
+                labels: {
+                fontColor: 'black',
+                }
+        }}
+    });
+
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("prjCostData", "Project",new { prjId = @Model.budget.tProject.fProjectId })",
+            dataType: "JSON"
+        }).done(function (data) {
+            //Table
+            console.log(data)
+            //$("#levelTable").append(`<td></td><td style="width:37%;">名稱</td><td>預估費用</td><td>已花費用</td>`);
+            $("#levelTable").append(`<tr><td>名稱</td><td>預估費用</td><td>已花費用</td>`);
+
+            for (var i = 0; i < data.length; i++) {
+
+                $("#levelTable").append(`<tr> 
+                            <td><i class="fa fa-square" style="color:${color[i]}">${data[i].Levelname}</td>
+                            <td>$${data[i].EstimateCost.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')}</td>
+                            <td>$${data[i].cost.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')}</td>
+                            </tr>`);
+            }
+        })
+
+    // Bar chart
+    var ctx = document.getElementById("mybarChart");
+    var mybarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(taskNames),
+    datasets: [{
+        label: '# of 人事費用',
+        backgroundColor: "#455C73",
+        data: @Html.Raw(taskCosts),
+                }]
+            },
+
+        options: {
+            legend: {
+                display: false
+            },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        }}
+        });
+
+    // Line chart
+    var ctx = document.getElementById("lineChart");
+    var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(month),
+    datasets: [{
+        label: "My First dataset",
+        backgroundColor: "rgba(3, 88, 106, 0.3)",
+        borderColor: "rgba(3, 88, 106, 0.70)",
+        pointBorderColor: "rgba(3, 88, 106, 0.70)",
+        pointBackgroundColor: "rgba(3, 88, 106, 0.70)",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgba(151,187,205,1)",
+        pointBorderWidth: 1,
+        data: @Html.Raw(accumulateCost),
+                }]
+            },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }],
+        }}
+    });
+    </script>
+
+    <script>
+        //剩餘預算
+        @*$(document).ready(function () {
+            let money = 0;
+            money =@Model.budget.fBudget-@allcost;
+            let _money = money.value.ToString("C0");
+            $("#RemainingBudget").text(_money);
+        });*@
+
+        //切換專案基本資料
+        $("#ProjectDetail").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                window.location.href =  '@Url.Action("Index", "ProjectDetail", new { prjId = @Model.budget.tProject.fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                 window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @Model.budget.tProject.fProjectId})';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換工作項目
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @Model.budget.tProject.fProjectId })';
+                }
+            }
+            )
+        })
+
+    </script>
+}

@@ -1,0 +1,316 @@
+﻿@model EIP_System.ViewModels.CVM_BudgetLevel
+@*@model IEnumerable<EIP_System.Models.tProjectDetail>*@
+
+
+@{
+    ViewBag.Title = "Dashboard";
+    //int levelNumber = Model.levels.Count();
+    //int wage = Convert.ToInt32(Model.budget.fSalaryHour);
+
+    var levelNames = Json.Encode(ViewBag.LevelName);
+    var levelCosts = Json.Encode(ViewBag.LevelCost);
+    var taskNames = Json.Encode(ViewBag.TaskName);
+    var taskCosts = Json.Encode(ViewBag.TaskCost);
+    var month = Json.Encode(ViewBag.Month);
+    var accumulateCost = Json.Encode(ViewBag.AccumulateCost);
+    var allcost = ViewBag.Allcost;
+
+    var creatdDate = ViewBag.CreatdDate;
+    var dateline = ViewBag.Dateline;
+    var progress = ViewBag.Progress;
+    var budgetRate = ViewBag.BudgetRate;
+
+    int todoCount = ViewBag.Todo;
+    int doingCount = ViewBag.Doing;
+    int acceptanceCount = ViewBag.Acceptance;
+    int finishCount = ViewBag.Finish;
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>任務狀態 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div class="row">
+                    <div class="col-md-3 ">
+                        <a class="tile-stats bg-green-light">
+                            <div class="icon">
+                                <i class="fa fa-circle-o-notch"></i>
+                            </div>
+                            <div class="count">未開始</div>
+                            <div class="count">@todoCount</div>
+                        </a>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <a class="tile-stats bg-green">
+                            <div class="icon">
+                                <i class="fa fa-comments-o"></i>
+                            </div>
+                            <div class="count">進行中</div>
+                            <div class="count">@doingCount</div>
+                        </a>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <div class="tile-stats bg-blue">
+                            <div class="icon">
+                                <i class="fa fa-sort-amount-desc"></i>
+                            </div>
+                            <div class="count">待驗收</div>
+                            <div class="count">@acceptanceCount</div>
+                        </div>
+                    </div>
+                    <div class=" col-md-3 ">
+                        <div class="tile-stats bg-green-dark">
+                            <div class="icon">
+                                <i class="fa fa-check-circle-o"></i>
+                            </div>
+                            <div class="count">驗收完成</div>
+                            <div class="count">@finishCount</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="x_panel">
+        <div class="col-md-12 col-sm-12 ">
+            <div class="dashboard_graph">
+
+                <div class="col-md-3 col-sm-3  bg-white">
+                    <div class="panel-body">
+                        <br />
+                    </div>
+                    <div class="col-md-12 col-sm-12 ">
+                        <h3 class="m-h3">專案完成率</h3>
+                        <div class="progress ">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: @progress%;" aria-valuenow="@progress%" aria-valuemin="0" aria-valuemax="100">@progress%</div>
+                        </div>
+                        <h3 class="m-h3">預算執行率</h3>
+                        <div class="progress ">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: @budgetRate%;" aria-valuenow="@budgetRate%" aria-valuemin="0" aria-valuemax="100">@budgetRate%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-9 col-sm-9 ">
+                    <div class="col-md-12">
+                        <div class="x_title">
+                            <h2>
+                                成本累積費用
+                            </h2>
+                            <div style="float: right; display: block; padding-right: 10px;">
+                                <a class="btn btn-primary" href="@Url.Action("EditBudget", "Project", new { prjId = @Model.budget.fProjectId})">查看預算書</a>
+                                <a class="btn btn-primary" href="@Url.Action("projectCost", "Project", new { prjId = @Model.budget.fProjectId})">查看成本統計</a>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <canvas id="lineChart" width="1152" height="350"></canvas>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+
+<div class="row">
+    <div class="col-md-5 col-sm-5 ">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 ">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>
+                            近期任務
+                        </h2>
+                        <div style="float: right; display: block; padding-right: 10px;">
+                            <a class="btn btn-primary" href="@Url.Action("Index", "ProjectDetail", new { prjId = @Model.budget.fProjectId })">查看任務</a>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <table id="LastTaskList" class="table table-striped table-bordered" style="width:100%">
+                            <thead class="bg-primary">
+                                <tr>
+                                    <th>階段</th>
+                                    <th>任務</th>
+                                    <th>負責人</th>
+                                    <th>期限</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7 col-sm-7 ">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 ">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>
+                            待驗收任務
+                        </h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <table id="TaskList" class="table table-striped table-bordered" style="width:100%">
+                            <thead class="bg-primary">
+                                <tr>
+                                    <th>階段</th>
+                                    <th>任務</th>
+                                    <th>負責人</th>
+                                    <th>期限</th>
+                                    <th style="width:25%"></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline h2.title:before {
+        border: 3px solid #3498DB;
+    }
+
+    .tile-stats .count {
+        font-size: 28px;
+        font-weight: bold;
+        line-height: 1.65857143;
+    }
+
+    .m-h3 {
+        font-size: 18px;
+        color: #3f5265;
+        font-weight: 500;
+    }
+</style>
+
+
+@section scripts{
+    <script>
+        var LastTaskListTable;
+        $(document).ready(function () {
+            LastTaskListTable =
+                $("#LastTaskList").DataTable({
+                    //關閉搜尋相關
+                    "searching": false,
+                    "paging": false,
+                    "info": false,
+                    "ajax": {
+                        "type": "GET",
+                        "url":"@Url.Action("GetaLastData", "ProjectDetail", new { fId = @Model.budget.fProjectId })",
+                        "datatype": "JSON"
+                    },
+                       "columns": [
+                            { "data": "levelName" },
+                            { "data": "taskName" },
+                            { "data": "empName" },
+                            { "data": "deadline" }
+                    ],
+                    "language": {
+                        "processing": "<p>載入中</p>",
+                        "emptyTable": "沒有任何近期任務"
+                    }
+                   });
+        });
+
+
+        var TaskTable;
+        $(document).ready(function () {
+            TaskTable =
+                $("#TaskList").DataTable({
+                    //關閉搜尋相關
+                    "searching": false,
+                    "paging": false,
+                    "info": false,
+                    "ajax": {
+                        "type": "GET",
+                        "url": "@Url.Action("GetPrjAcceptanceTask", "ProjectSignoff")",
+                            "data": { prjId:@Model.budget.fProjectId},
+                        "datatype": "JSON"
+                    },
+                        "columns": [
+                            { "data": "levelName" },
+                            { "data": "taskName" },
+                            { "data": "empName" },
+                            { "data": "deadline" },
+                            {
+                                "data": "prjDetailId", "render": function (prjDetailId) {
+                                    return `<a class='btn btn-success' onclick='acceptance(${prjDetailId},1)'>通過</a>` +
+                                        `<a class='btn btn-warning' onclick='acceptance(${prjDetailId},0)'>不通過</a>`
+                                }
+                            }
+                    ],
+                    "language": {
+                        "processing": "<p>載入中</p>",
+                        "emptyTable": "沒有任何待驗收任務"
+                    }
+            });
+        });
+
+        function acceptance(Id, pass) {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Acceptance", "ProjectSignoff")",
+                data: { prjDetailId: Id, approve: pass },
+                success: function () {
+                    //alert("修改成功");
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: '驗收成功',
+                        showConfirmButton: false,
+                        timer: 1000
+                    })
+                    TaskTable.ajax.reload();
+                }
+            });
+        }
+
+    // Line chart
+    var ctx = document.getElementById("lineChart");
+    var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(month),
+    datasets: [{
+        label: "成本累積費用",
+        backgroundColor: "rgba(3, 88, 106, 0.3)",
+        borderColor: "rgba(3, 88, 106, 0.70)",
+        pointBorderColor: "rgba(3, 88, 106, 0.70)",
+        pointBackgroundColor: "rgba(3, 88, 106, 0.70)",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgba(151,187,205,1)",
+        pointBorderWidth: 1,
+        data: @Html.Raw(accumulateCost),
+                }]
+            },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }],
+    }
+    }
+    });
+    </script>
+}

@@ -1,0 +1,334 @@
+﻿@model EIP_System.Models.tApplypunch
+@{
+    ViewBag.Title = "InfoIndex";
+}
+<style>
+    .x_box {
+        position: relative;
+        width: 100%;
+        margin-bottom: 0px 10px 0px 10px;
+        padding: 10px;
+        display: inline-block;
+        background: #fff;
+        border: 1px solid #E6E9ED;
+    }
+
+        .x_box p {
+            margin: 0px;
+        }
+
+    .x_box_title {
+        padding: 10px;
+        background: #6298b4;
+        font-size: 18px;
+        letter-spacing: 2px;
+        font-weight: bold;
+        color: #FFF;
+    }
+
+        .x_box_title p {
+            margin: 0px;
+        }
+</style>
+
+<!-- 考勤申請紀錄查詢    -->
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 考勤申請紀錄查詢 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered" id="table_Attend">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>大項目</th>
+                            <th>申請類別</th>
+                            <th>申請日期</th>
+                            <th>申請原因</th>
+                            <th>審核主管</th>
+                            <th>生效日期</th>
+                            <th>到期日期</th>
+                            <th>審核狀態</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 考勤資料統計查詢    -->
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 請假假別統計 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content" id="LeaveCount">
+                <div class="col-md-12">
+                    <h3>說明 : 一天標準工時8小時，以下資訊把各個假別可請假天數轉成小時</h3>
+                    <p>Example: 事假一年內可請14天，所以事假可請小時 14 * 8 = 112</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--彈跳視窗-->
+<div class="modal fade bs-example-modal-lg" id="myModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h2 class="modal-title" style="color:#FFF">撤銷申請</h2>
+            </div>
+            <div class="modal-body">
+                <h4>請再最後一次確認申請是否撤銷</h4>
+                <div class="row">
+                    <div id="modal_table">
+                        <!--顯示審核的資料列-->
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="text-center">
+                        <button type="button" class="btn btn-danger btn-lg" onclick="submitRevoke()">
+                            <i class="fa fa-close">撤銷</i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        //儲存目前的編輯資料
+        var editrow_id;
+        var TableAttend;
+        //假別用
+        var labels = ["已用時數", "剩餘時數"];
+        var data = [];
+        var bgcolor = ["#3498DB", "#9CC2CB", "#1ABB9C"];
+
+        $(document).ready(function () {
+            var row_agree = null;
+            //表單
+            TableAttend = $("#table_Attend").DataTable({
+                //加入捲動
+                "scrollY": "240px",
+                "scrollCollapse": true,
+                    "ajax": {
+                        "type": "POST",
+                        "url": "@Url.Action("getAllData", "Attend_Info")",
+                        "datatype": "JSON"
+                    },
+                "columns": [
+                    {
+                        "data": "catelog", "render": function (catelog) {
+                            let show;
+                            if (catelog == "請假申請") {
+                                show = '<span class="label bg-blue">請假申請</span>';
+                            } else if (catelog == "加班申請") {
+                                show = '<span class="label bg-orange">加班申請</span>';
+                            } else {
+                                show = '<span class="label bg-green">補打卡申請</span>';
+                            }
+                            return show;
+                        }
+                    },
+                    { "data": "applyclass" },
+                    { "data": "applydate" },
+                    { "data": "reason" },
+                    { "data": "supervisor"},
+                    { "data": "activedate" },
+                    { "data": "enddate" },
+                    {
+                        "data": "isagreed", "render": function (agree) {
+                            let show;
+                            if (agree == null) {
+                                show = '<span class="label label-primary"><i class="fa fa-clock-o">待審核</i></span>';
+                                row_agree = null;
+                            } else if (agree == 1) {
+                                show = '<span class="label label-success"><i class="fa fa-check-square ">通過</i></span>';
+                                row_agree = 1;
+                            } else {
+                                show = '<span class="label label-danger"><i class="fa fa-remove">不通過</i></span>';
+                                row_agree = 1;
+                            }
+                            return show;
+                        }
+                    },
+                    {
+                        "data": "id", "render": function (id) {
+                            if (row_agree == null) {
+                                return `<a class='btn btn-danger' onclick='getrow(${id});showModal();'>撤銷</a>`
+                            } else {
+                                return `<button type="button" class="btn btn-danger" disabled>撤銷</button>`;
+                            }
+                        }
+                    }
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "目前沒有任何申請資料"
+                }
+
+            });
+
+            //顯示假別統計
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("getLeaveChartData", "Attend_Info")",
+                dataType:"JSON"
+            }).done(function (data) {
+                console.log(data);
+                for (var i = 0; i < data.length; i++) {
+                    console.log(data[i]);
+                    //畫div框架
+                    $("#LeaveCount").append(`
+                    <div class="col-md-4 col-sm-6 ">
+                        <div class="x_box_title">
+                            <p>${data[i].name}時數統計</p>
+                        </div>
+                        <div class="x_box">
+                            <br />
+                                <div class="" id="${data[i].name}">
+                                    <div class="col-md-6">
+                                        <canvas id="${data[i].name}-Chart" height="140" width="140"></canvas>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <table id="${data[i].name}-Table" class="tile_info"></table>
+                                    </div>
+                                </div>
+                                <div class="pull-right">
+                                        <p>使用期限 : ${data[i].startdate} ~ ${data[i].enddate}
+                                </div>
+                    `);
+                    //Table
+                    let tab = document.getElementById(`${data[i].name}-Table`);
+                    tab.innerHTML = `<tr>
+                                    <td>
+                                    <p><i class="fa fa-square blue"></i>總時數 </p>
+                                    </td>
+                                    <td>${data[i].alltime} 小時</td>
+                                    </tr>
+                                    <tr>
+                                    <td>
+                                    <p><i class="fa fa-square aero"></i>已用時數 </p>
+                                    </td>
+                                    <td>${data[i].usedtime} 小時</td>
+                                    </tr>
+                                    <tr>
+                                    <td>
+                                    <p><i class="fa fa-square green"></i>剩餘時數 </p>
+                                    </td>
+                                    <td>${data[i].remaintime} 小時</td>
+                                    </tr>
+                                    `;
+
+                    //Chart
+                    let ctx = document.getElementById(`${data[i].name}-Chart`);
+                    let chart = new Chart(ctx, {
+                        type: "doughnut",
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: [data[i].usedtime, data[i].remaintime],
+                                backgroundColor: ["#9CC2CB", "#1ABB9C"],
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            legend: {
+                                display: false
+                            }
+                        }
+                    });
+
+                }
+            });
+        });
+
+        //顯示 視窗
+        function showModal() {
+            $("#myModal").modal("show");
+        }
+
+        //取得要撤銷的row
+        function getrow(id) {
+            editrow_id = id;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("getrow", "Attend_Info")/" + id,
+                dataType: "JSON",
+                success: function (data) {
+                    console.log(data);
+                    $('#modal_table').html("");
+                    let trHTML = '<table class="table table-bordered" style="background:#FFF">';
+                    trHTML += `<thead class="bg-primary">
+                                    <tr>
+                                        <th>大項目</th>
+                                        <th>申請類別</th>
+                                        <th>申請日期</th>
+                                        <th>申請原因</th>
+                                        <th>審核主管</th>
+                                        <th>生效日期</th>
+                                        <th>到期日期</th>
+                                    </tr>
+                                </thead>`;
+
+                    trHTML +=
+                        '<tr><td>' + data[0].catelog +
+                        '<td>' + data[0].applyclass +
+                        '<td>' + data[0].applydate +
+                        '<td>' + data[0].reason +
+                        '<td>' + data[0].supervisor +
+                        '<td>' + data[0].activedate +
+                        '<td>' + data[0].enddate;
+
+                    $('#modal_table').append(trHTML);
+                },
+                error: function (err) {
+                    console.log(`Ajax error: ${err.status} - ${err.statusText}`);
+                }
+            });
+        }
+
+        //確認撤銷
+        function submitRevoke() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("submitRevoke", "Attend_Info")/' + editrow_id,
+                datatype: "JSON",
+                success: function () {
+                    TableAttend.ajax.reload();
+                    //alert('撤銷完成');
+                    Swal.fire(
+                        '撤銷完成',
+                        '申請資料已撤銷',
+                        'success'
+                    );
+                    $("#myModal").modal("hide");
+                },
+                error: function (err) {
+                    console.log(`Ajax error: ${err.status} - ${err.statusText}`);
+                }
+
+            });
+        }
+
+
+    </script>
+
+}

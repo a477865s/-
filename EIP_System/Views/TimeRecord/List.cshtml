@@ -1,0 +1,65 @@
+﻿@model IEnumerable<EIP_System.Models.tTimeRecord>
+
+@{
+    ViewBag.Title = "RecordTodayList";
+}
+
+<h2>RecordTodayList</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+<table class="table">
+    <tr>
+        <th>
+            <label>日期</label>
+        </th>
+        <th>
+            <label>案號</label>
+        </th>
+        <th>
+            <label>案名</label>
+        </th>
+        <th>
+            <label>階段</label>
+        </th>
+        <th>
+            <label>任務</label>
+        </th>
+        <th>
+            <label>時數</label>
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+<tr>
+    <td>
+        @Html.DisplayFor(modelItem => item.fDate)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.fProjectId)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.tProject.fProjectName)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.tProjectDetail.tLevel.fLevelName)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.tProjectDetail.fTaskName)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.fTime)
+    </td>
+    <td>
+        @Html.ActionLink("Edit", "Edit", new { fId = item.fTimeRecordId }) |
+        @Html.ActionLink("Delete", "Delete", new { fId = item.fTimeRecordId })
+    </td>
+</tr>
+    }
+
+</table>
+

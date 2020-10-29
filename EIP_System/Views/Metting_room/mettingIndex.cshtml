@@ -1,0 +1,279 @@
+﻿@model Dictionary<string, object>
+@{
+
+    ViewBag.Title = "MettingIndex";
+    List<SelectListItem> select_room = new List<SelectListItem>() { new SelectListItem() { Text = "A會議室", Value = "A" }, new SelectListItem() { Text = "B會議室", Value = "B" } };
+}
+
+
+
+
+<head lang="en">
+
+    <meta charset="UTF-8">
+
+    <title>日曆</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js"></script>
+    <link href="~/Content/Metting/Calendar.css" rel="stylesheet" />
+    <!-- Select2 -->
+    <link href="~/Plugin/select2/css/select2.css" rel="stylesheet" />
+    <link href="~/Plugin/select2-bootstrap4-theme/select2-bootstrap4.min.css" rel="stylesheet" />
+    
+    <!-- Select2 -->
+    <script src="~/Plugin/select2/js/select2.full.min.js"></script>
+    <script src="~/Scripts/Metting_date/Metting_date.js"></script>
+
+
+    @section scripts{
+        <script>
+    //後端驗證未過時
+            @{
+                object message;
+                if (Model != null && Model.TryGetValue("message", out message))
+                {
+                    var a = message.ToString();
+                    if (a.IndexOf("成功")>0)
+                    {
+                        <text>
+                        mes('@message')
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        meserror('@message')
+                        </text>
+                    }
+
+                }
+            }
+        function mes(message) {
+                    Swal.fire(
+                        {   position: 'center',
+                            icon: 'success',
+                            title: '成功',
+                            text:message,
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true,
+                        }
+                    ).then(function () {
+                        if (message == "編輯成功")
+                            $("#lt").text("修改成功，請在下方選取要通知人員")
+                        if (message != "刪除成功")
+                            $(`button[select-id=@ViewBag.id]`).click()
+                    })
+
+        }
+        function meserror(message) {
+            Swal.fire(
+                {
+                    icon: 'error',
+                    title: '錯誤...',
+                    text: message,
+                    footer: '',
+                    timer: 2000,
+                    timerProgressBar: true,
+                }
+            )
+        }
+        </script>
+    }
+
+</head>
+
+<div id="edit" class="black_overlay ">
+    @*編輯表單*@
+    <div id="dialog-form" title="" class="white_content">
+        <button type="button" class="close" aria-label="Close">
+            <span style="color: red;" aria-hidden="true">&times;</span>
+        </button>
+
+        <div class="modal-header">
+            <h2 id="title" class="col-md-8 col-md-offset-2" style="color: #fff;text-align: center">變更會議時間</h2>
+        </div>
+        <div class="modal-body" style="border-radius: 0 0 20px 20px;">
+            @using (Html.BeginForm("edit", "monthtest", FormMethod.Post, new { style = "height: calc(100% - 55px);", id = "editfrom" }))
+            {
+                @Html.AntiForgeryToken()
+                <div style="position: relative; display: flex; flex-direction: column; height: 100%;">
+                    <div style="flex: 7;">
+                        <div class="row">
+
+                            <div class="form-group">
+                                <input type="hidden" id="fRoom" name="fRoom" />
+                                <input type="hidden" id="fEmployeeId" name="fEmployeeId" />
+                                <input type="hidden" id="fName" name="fName" />
+                            </div>
+
+                            <div style=" margin: 0 10% 0 10%;">
+                                <div class="form-group">
+                                    <div class="col-md-8 col-md-offset-2">
+                                        @Html.Label("Reason", "開會緣由", htmlAttributes: new { @class = "control-label col-md-12" })
+                                        <div class="col col-md-12">
+                                            @Html.Editor("fReason", new { htmlAttributes = new { @class = "form-control", @style = "max-width: 100%" } })
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                        @Html.ValidationMessage("fReason", "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-8 col-md-offset-2">
+                                        @Html.Label("Reason", "日期", htmlAttributes: new { @class = "control-label col-md-12" })
+                                        <div class="col col-md-12">
+                                            @Html.Editor("fDate", new { htmlAttributes = new { @class = "form-control", @type = "date", @style = "max-width: 100%" } })
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-8 col-md-offset-2">
+                                        <label class="control-label col-md-12">開始時間</label>
+                                        <div class="col col-md-12">
+                                            <select name="fStarttime" id="fStarttime" class="form-control" selected-item=""></select>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8 col-md-offset-2">
+                                        <label class="control-label col-md-12">結束時間</label>
+                                        <div class="col col-md-12">
+                                            <select name="fEndtime" id="fEndtime" class="form-control" selected-item=""></select>
+                                            <span class="help-block with-errors"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div>
+                            <div class="time_list">
+                                <label class="control-label col-md-2" style="font-size: 24px;">時段表</label>
+                                <div class="col-md-4 col-md-offset-2 " style="margin-top: 10px;">
+                                    <div>
+                                        <span class="legend_text">所選時間</span>
+                                        <div class="legend" style=" background-color: #ffd96a;"></div>
+                                        <span class="legend_text">已有人預約</span>
+                                        <div style=" background-color: #999999" class="legend"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col mod-10">
+                                <div class="block-view center">
+                                    <div class="bar" id="timelist"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <div>
+
+                        </div>
+                        <div class="form-group" style="flex: 1; margin-right: 5%;">
+                            <button id="demo" type="button">Demo</button>
+                            <input id="send" type="submit" value="確定" class="btn btn-primary" style="float: right;" />
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+                <div style="display:inline-block">
+                    
+                </div>
+            
+        </div>
+    </div>
+</div>
+
+
+<div id="seal" class="black_overlay " >
+    @*通知*@
+    <div id="seal-form" title="" class="white_content" style="text-align:center;height: 30%;">
+        <button type="button" class="close" aria-label="Close">
+            <span style="color: red;" aria-hidden="true">&times;</span>
+        </button>
+
+        <div class="modal-header">
+            <div style="text-align:center">
+                <h2 id="title" class="col-md-8 col-md-offset-2" style="color: #fff;">通知</h2>
+            </div>           
+        </div>
+        <div class="modal-body" style="height:100%">
+            <div class="col-md-8 col-md-offset-2">
+                <label id="reason"></label>
+            </div>
+            <div class="col-md-8 col-md-offset-2">
+                <label id="time"></label>
+            </div>
+            <div class="col-md-8 col-md-offset-2">
+                <label id="lt">會議室租借成功，請在下方選取要通知人員</label>
+            </div>
+            <div class="col-md-8 col-md-offset-2">
+                <label id="prt">(下拉式選單可點擊部門名稱全選部門人員)</label>
+            </div>
+            <div class="col-md-8 col-md-offset-2" style="display:flex">
+                <div style="flex:1">
+                    <select id="department" multiple="multiple" class="form-control"></select>
+                </div> 
+                <div  style="display:inline-block"><button id="changeop" class="btn btn-primary">切換專案群組</button></div>
+            </div>
+            
+        </div>
+        <div class="modal-footer">
+            <div class="form-group" style="flex: 1; margin-right: 5%;">
+                <input id="sealsend" type="button" value="通知" class="btn btn-primary" style="float: right;" />
+            </div>
+        </div>
+    </div>
+
+ </div>
+
+
+
+    <div class="x_panel">
+
+
+        <div class="x_title">
+            <h2>會議室租借</h2>
+            <div class="clearfix"></div>
+        </div>
+
+        <div style="text-align:center">
+            <span style="font-size: 18px;">請選擇會議室:</span>
+            @Html.DropDownList("select_room", (IEnumerable<SelectListItem>)select_room, new { @class = "form-control", @style = "font-size: 18px;width: 200px;text-align: center;display: initial" })
+            <input type="hidden" id="room" />
+        </div>
+        <div style="display:inline-block;float:right">
+            <span style="font-size:18px;display:inline">設計部</span>
+            <div style="width:20px;height:15px;border:double 0.5px;background-color:#6FB7B7;padding-left:10px;display: inline-block;"></div>
+            <span style="font-size:18px;display:inline">人資部</span>
+            <div style="width:20px;height:15px;border:double 0.5px;background-color:#9999CC;padding-left:10px;display: inline-block;"></div>
+            <span style="font-size:18px;display:inline">資訊部</span>
+            <div style="width:20px;height:15px;border:double 0.5px;background-color:#639288;padding-left:10px;display: inline-block;"></div>
+        </div>
+        <div class="x_content">
+            <div id="calendar_1"></div>
+        </div>
+    </div>
+
+
+    <div id="list1" class="x_panel">
+        @*databale列表*@
+        <input type="hidden" value="" id="clickday" name="clickday">
+        <input type="hidden" value="" id="day">
+        <input type="hidden" value=@ViewBag.userid id="userid">
+        <input type="hidden" value=@ViewBag.user id="user">
+        <div id="list">
+            <button class="btn btn-primary btn-lg btn-block" id="create-new" style="display:none;width:15%"><div style="width:auto;height:auto">會議室申請</div></button>
+            <h2></h2>
+            <table class="table table-bordered" id="home-table" style="width:100%">
+                <thead class="bg-primary">
+                    <tr>
+                        <td></td>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>

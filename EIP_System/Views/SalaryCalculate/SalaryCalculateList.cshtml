@@ -1,0 +1,190 @@
+﻿@model IEnumerable<EIP_System.ViewModels.VMSalaryCalculate>
+
+@{
+    ViewBag.Title = "SalaryCalculateList";
+
+    List<SelectListItem> monthList = new List<SelectListItem>();
+    for (int i = 1; i <= 12; i++)
+    {
+        monthList.Add(new SelectListItem { Text = i.ToString(), Value = i.ToString() });
+    }
+    List<SelectListItem> yearList = new List<SelectListItem>();
+    for (int i = DateTime.Now.Year; i >= DateTime.Now.Year - 3; i--)
+    {
+        yearList.Add(new SelectListItem { Text = i.ToString(), Value = i.ToString() });
+    }
+
+}
+@using EIP_System.ViewModels;
+@{
+    string MonthNumber = (ViewBag.Month).ToString();
+}
+<style>
+    table {
+        border: 1px solid #000;
+        font-family: 微軟正黑體;
+        font-size: 14px;
+        width: 200px;
+        border: 1px solid #000;
+        text-align: center;
+        border-collapse: collapse;
+    }
+
+        table th {
+            background-color: #009FCC;
+            padding: 10px;
+            border: 1px solid #000;
+            color: #fff;
+            text-align: center;
+        }
+
+    td {
+        border: 1px solid #000;
+        padding: 5px;
+    }
+
+    .account {
+        border: 1px solid #000;
+        padding: 5px;
+        font-weight: bold;
+        font-size: 16px;
+        color: black;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>薪資試算</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+
+                <div>
+                    <div class="form-group">
+                        @Html.Label("請選擇年份:", htmlAttributes: new { @class = "col-form-label" })
+                        @Html.DropDownList("yearselect", yearList, htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("請選擇月份:", htmlAttributes: new { @class = "col-form-label" })
+                        @Html.DropDownList("monthselect", monthList, MonthNumber, htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="container">
+                    <table class="table table-striped table-bordered" style="width:100%">
+                        <tr>
+                            <th class="bg-primary">
+                                日期
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fSort)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fSalary)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fOverTimeMoney)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fAttendMoney)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fLBI)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.fHI)
+                            </th>
+                            <th class="bg-primary">
+                                @Html.DisplayNameFor(model => model.total)
+                            </th>
+                        </tr>
+                        @{
+                            int AddedMoney = 0;
+                            int SubtractMoney = 0;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            if (item.OverTimeActiveDate != Convert.ToDateTime("0001-01-01T00:00:00"))
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => item.OverTimeActiveDate)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.fSort)</td>
+                                    <td></td>
+
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.fOverTimeMoney)
+                                        @{
+                                            AddedMoney += Convert.ToInt32(item.fOverTimeMoney);
+                                        }
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            };
+                            if (item.LeaveTimeActiveDate != Convert.ToDateTime("0001-01-01T00:00:00"))
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.LeaveTimeActiveDate)
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.fSort)</td>
+                                    <td></td>
+
+                                    <td></td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.fAttendMoney)
+                                        @{
+                                            SubtractMoney += Convert.ToInt32(item.fAttendMoney);
+                                        }
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                        }
+
+                        <tr class="account">
+                            <td>合計</td>
+                            <td></td>
+                            <td>@ViewBag.fSalary</td>
+                            <td>@AddedMoney</td>
+                            <td>@SubtractMoney</td>
+                            <td>@ViewBag.fLBI</td>
+                            <td>@ViewBag.fHI</td>
+                            <td style="font-weight: bold">
+                                @{
+                                    var all = ViewBag.fSalary + AddedMoney - SubtractMoney - ViewBag.fLBI - ViewBag.fHI;
+                                }
+                                @all
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section scripts{
+    <script>
+        $("#monthselect").change(function () {
+            console.log($(this).val());
+            let inputmonth = $(this).val();
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("SalaryCalculateList", "SalaryCalculate")',
+                data: { _month: inputmonth }
+            });
+            window.location.reload();
+
+        });
+    </script>
+}

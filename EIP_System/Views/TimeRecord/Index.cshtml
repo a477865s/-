@@ -1,0 +1,450 @@
+﻿@model EIP_System.Models.tTimeRecord
+
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<!--今日工作紀錄-->
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 工時紀錄 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <button class="btn btn-success" style="margin-bottom:10px" onclick="showModal()">新增</button>
+                <table class="table table-bordered" id="RecordTodayList">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th>日期</th>
+                            <th>案號</th>
+                            <th>案名</th>
+                            <th>階段</th>
+                            <th>任務</th>
+                            <th>時數</th>
+                            <th>狀態</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--歷史紀錄查詢-->
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> 歷史紀錄查詢 </h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+
+
+
+                <!--查詢選單 -->
+                <div class="item form-group">
+                    <label class="col-form-label col-md-3 col-sm-3 label-align">
+                        開始時間
+                    </label>
+                    <div class="col-md-6 col-sm-6 ">
+                        <input name="startTime" id="startTime" class="form-control" type="date" required="required">
+                        <span style="display:none;color:red">請選擇日期</span>
+                    </div>
+
+                    <label class="col-form-label col-md-3 col-sm-3 label-align">
+                        結束時間
+                    </label>
+                    <div class="col-md-6 col-sm-6 ">
+                        <input name="endTime" id="endTime" class="form-control" type="date" required="required">
+                        <span style="display:none;color:red">請選擇日期</span>
+
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 ">
+                        @*<input type="submit" class="btn btn-info" value="查詢" id="searchRecord" />*@
+                        <btn class="btn btn-success" id="searchRecord">查詢</btn>
+                        <span style="display:none;color:red;">請選擇正確區間</span>
+                    </div>
+                </div>
+
+
+                <table class="table table-bordered" id="HistroyRecordList">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>案號</th>
+                            <th>案名</th>
+                            <th>階段</th>
+                            <th>任務</th>
+                            <th>時數</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- 新增工時紀錄 -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增工時紀錄</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Postdata", "Home", FormMethod.Post, new { @id = "formsumit" }))
+                {
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        @*使用Html.HiddenFor 隱藏ID用於修改相關*@
+                        @Html.HiddenFor(model => model.fTimeRecordId)
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">案號</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fProjectId, new { htmlAttributes = new { @class = "form-control", onchange = "getLevel(this.value)" } })
+                            @Html.ValidationMessageFor(model => model.fProjectId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">案名</label>
+                        <div class="col-md-10">
+                            <input id="projectName" class="form-control" readonly="readonly">
+                        </div>
+                    </div>
+
+                    @*從tlevel產生下拉式選單*@
+                    <div class="form-group">
+                        <label class="control-label col-md-2">階段</label>
+                        <div class="col-md-10">
+                            <select id="fStage" name="fStage" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    @*從ProjectDetail產生下拉式選單 選擇任務名稱 但存入任務編號*@
+                    <div class="form-group">
+                        <label class="control-label col-md-2">任務</label>
+                        <div class="col-md-10">
+                            <select id="fProjectDetailId" name="fProjectDetailId" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-2">時數</label>
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.fTime, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.fTime, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="showAdd" onclick="submit()">新增</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+        //取得歷史工作紀錄
+        var histroyRecordTable;
+
+        $("#searchRecord").click(function () {
+
+            $("#HistroyRecordList").DataTable().destroy()
+
+            let start = $("#startTime").val();
+            let end = $("#endTime").val();
+            if (start != "" && end != "" && new Date(start) < new Date(end)) {
+                $("#startTime+span").hide();
+                $("#endTime+span").hide();
+                $("#searchRecord+span").hide();
+                histroyRecordTable =
+                    $("#HistroyRecordList").DataTable({
+                        "ajax": {
+                            "type": "POST",
+                            "url": "@Url.Action("Search", "TimeRecord")",
+                            "data": { startTime: start, endTime: end },
+                        },
+                        "columns": [
+                            { "data": "date" },
+                            { "data": "projectId" },
+                            { "data": "projectName" },
+                            { "data": "levelName" },
+                            { "data": "taskName" },
+                            { "data": "time" },
+                            //{ "data": "approve" }
+                            {
+                                "data": "approve", "render": function (agree) {
+                                    console.log(agree);
+                                    let show;
+                                    if (agree == "同意") {
+                                        show = '<span class="label label-success">審核通過</span>';
+                                    } else if (agree == "不同意") {
+                                        show = '<span class="label label-danger">不通過</span>';
+                                    } else {
+                                        show = '<span class="label label-primary">待審核</span>';
+                                    }
+                                    return show;
+                                }
+                            },
+                        ],
+                        "language": {
+                            "processing": "<p>載入中</p>",
+                            "emptyTable": "沒有任何資料，請按[新增]按鈕來新增資料"
+                        }
+                    });
+                histroyRecordTable.ajax.reload();
+            } else if (new Date(start) > new Date(end)) {
+                $("#startTime+span").hide();
+                $("#endTime+span").hide();
+                $("#searchRecord+span").show();
+            }else if (start != "") {
+                $("#startTime+span").hide();
+                $("#endTime+span").show();
+                $("#searchRecord+span").hide();
+            }
+            else if (end != "") {
+                $("#startTime+span").show();
+                $("#endTime+span").hide();
+                $("#searchRecord+span").hide();
+            }
+            else {
+                $("#startTime+span").show();
+                $("#endTime+span").show();}
+        })
+
+    </script>
+
+    <script>
+        //取得今日工作紀錄
+        var RecordTable;
+        $(document).ready(function () {
+            var isAgree ;  //通過審核不能撤銷
+
+            RecordTable =
+                $("#RecordTodayList").DataTable({
+                "ajax": {
+                    "type": "GET",
+                    "url":"@Url.Action("Getdata", "TimeRecord")",
+                    "datatype": "JSON"
+                },
+                    "columns": [
+                        { "data": "date" },
+                        { "data": "projectId" },
+                        { "data": "projectName" },
+                        { "data": "levelName" },
+                        { "data": "taskName" },
+                        { "data": "time" },
+                        {
+                            "data": "approve", "render": function (agree) {
+                                let show;
+                                if (agree == "同意") {
+                                    show = '<span class="label label-success">審核通過</span>';
+                                    isAgree = "同意";
+                                } else if (agree == "不同意") {
+                                    show = '<span class="label label-danger">不通過</span>';
+                                    isAgree = "不同意";
+                                } else {
+                                    show = '<span class="label label-primary">待審核</span>';
+                                    isAgree = null;
+                                }
+                                return show;
+                            }
+                        },
+                        {
+                            "data": "timeRecordId", "render": function (timeRecordId) {
+                                if (isAgree == null) {
+                                    return `<a class='btn btn-primary' onclick='Delete(${timeRecordId})'>撤銷</a>`;
+                                }
+                                else if (isAgree == "不同意") {
+                                    return `<a class='btn btn-success' onclick='Edit(${timeRecordId})'>修改</a>`;
+                                }
+                            }
+                        }
+
+
+                ],
+                "language": {
+                    "processing": "<p>載入中</p>",
+                    "emptyTable": "沒有任何資料，請按[新增]按鈕來新增資料"
+                }
+            });
+        });
+
+        //顯示 新增/修改 視窗
+        function showModal() {
+            $("#myModal").modal("show");
+                //新增
+                $("#showAdd").show();
+                $("#showUpdate").hide();
+            }
+
+
+        function submit() {
+            var data = $("#formsumit").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Create", "TimeRecord")",
+                data: data,
+                success: function (response) {
+                    if (response == "success") {
+
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: '資料儲存成功',
+                            showConfirmButton: false,
+                            timer: 1000
+                        })
+
+                        RecordTable.ajax.reload();
+                        $("#myModal").modal('hide');
+                    }
+                },
+                error: function (msg) {
+                    alert(msg.responseText);
+                }
+            });
+        }
+
+
+        function Delete(id) {
+            Swal.fire({
+                title: '您確定要撤銷嗎?',
+                //text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '確定'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "GET",
+                        url: '@Url.Action("Delete", "TimeRecord")/' + id,
+                        success: function (response) {
+                            if (response == "success") {
+                                //alert("資料刪除成功");
+                                Swal.fire(
+                                    '成功!',
+                                    '你的工時紀錄已撤銷',
+                                    'success')
+                                RecordTable.ajax.reload();
+                                $("#myModal").modal('hide');
+                            }
+                            else { alert("失敗"); }
+                        },
+                        error: function (msg) {
+                            alert(msg.responseText);
+                        }
+                    })
+                }
+            })
+        }
+
+                @*function Delete(id) {
+            if (confirm("您確定要刪除嗎?")) {
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("Delete", "TimeRecord")/' + id,
+                    success: function (response) {
+                        if (response == "success") {
+                            alert("資料刪除成功");
+                            RecordTable.ajax.reload();
+                            $("#myModal").modal('hide');
+                        }
+                        else { alert("失敗"); }
+                    },
+                    error: function (msg) {
+                        alert(msg.responseText);
+                    }
+                })
+            }
+        }*@
+    </script>
+    <script>
+
+        //自動取得案名
+        $("#fProjectId").change(function () {
+            $("#projectName").val("");
+            var Id = $(this).val();
+            $.ajax({
+                url: "/TimeRecord/GetProjectName?prjId=" + Id,
+                type: "Get",
+                success: function (data) {
+                    $("#projectName").val(data);
+                }
+            });
+        });
+
+        //自動取得階段
+        var jsonLevel;
+        function getLevel(str) {
+            $("#fStage").empty();
+            $.ajax({
+                url: "/TimeRecord/GetLevels?prjId=" + str,
+                type: "Get",
+                success: function (data) {
+                    jsonLevel = JSON.parse(data);
+                    $.each(jsonLevel, function (i, value) {
+
+                        //輸入案名後從tlevel產生下拉式選單
+                        $("#fStage").append("<option class='selector1' value=" + value.fLevelId + ">" + value.fLevelName + "</option>");
+                    })
+                }
+            });
+        };
+
+        //自動取得任務
+        //不應該用change 否則第一階段不會出現任務
+        var jsonTask;
+        $("#fStage").change(function () {
+            $("#fProjectDetailId").empty();
+            //var i = $(".selector1").val(); vs.//$(this)
+            var Id = $(this).val();
+            console.log(Id);
+            $.ajax({
+                url: "/TimeRecord/GetTask?levelId=" + Id,
+                type: "Get",
+                success: function (data) {
+                    jsonTask = JSON.parse(data);
+                    $.each(jsonTask, function (i, value) {
+
+                        //從ProjectDetail產生下拉式選單 選擇任務名稱 但存入任務編號
+                        $("#fProjectDetailId").append("<option class='selector2' value=" + value.fProjectDetailId + ">" + value.fTaskName + "</option>");
+                    })
+                    var fProjectDetailId = $(".selector2").val();
+                    console.log(fProjectDetailId);
+
+                }
+            });
+        });
+
+    </script>
+}
+
+
+

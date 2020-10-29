@@ -1,0 +1,258 @@
+﻿@model IEnumerable<EIP_System.ViewModels.CVM_ProjectTeamMember>
+@{
+    ViewBag.Title = "List";
+}
+
+
+<!-- page content -->
+<div class="">
+    <div class="page-title">
+        <div class="title_left">
+            <h3></h3>
+
+        </div>
+
+        <div class="title_right">
+            <form class="col-md-5 col-sm-5 form-group pull-right top_search" method="post">
+                <div class="input-group">
+                    <input name="txtKey" type="text" class="form-control" placeholder="Search for...案號或案名" />
+                    <span class="input-group-btn">
+                        <input class="btn btn-secondary searchBtn" type="submit" value="送出" />
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2 id="proj">專案列表</h2>
+                    <div style="float: right; display: block; padding-right: 45px;">
+                        <button class="btn btn-primary btn-sm" style="margin-bottom:10px" onclick="showModal()">新增專案</button>
+                    </div>
+                    @*<button class="btn btn-primary btn-sm newproj" style="margin-bottom:10px" onclick="showModal()">新增專案</button>*@
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+
+
+
+                    <!-- start project list -->
+                    <table class="table table-striped projects">
+                        <thead>
+                            <tr class="header">
+                                <td>#</td>
+                                <th style="width: 10%">案號</th>
+                                <th style="width: 18%">案名</th>
+                                <th>團隊成員</th>
+                                <th style="width: 20%">進度</th>
+                                <th style="width: 10%">負責部門</th>
+                                <th style="width: 10%">詳細資料</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var prj in Model)
+                            {
+                                @Html.Partial("_projectPartial", prj);
+                            }
+                        </tbody>
+                    </table>
+                    <!-- end project list -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog " role="document">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h2 class="modal-title" id="exampleModalLabel" style="text-align: center;color:#fff">新增專案</h2>
+
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Create", "Home", FormMethod.Post, new { @id = "formsumit" }))
+                {
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+                            <div class="form-group">
+
+                                <label class="control-label col-md-12">案號</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="fProjectId" id="fProjectId" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">案名</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="fProjectName" id="fProjectName" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">業主</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="fClient" id="fClient" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">費用</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="fPrice" id="fPrice" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">開始日期</label>
+                                <div class="col-md-12">
+                                    <input type="date" name="fCreatdDate" id="fCreatdDate" class="form-control" required="required" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">結束日期</label>
+                                <div class="col-md-12">
+                                    <input type="date" name="fDateline" id="fDateline" class="form-control" required="required" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">部門</label>
+                                <div class="col-md-12">
+                                    <select id="fDepartment" name="fDepartment" class="form-control">
+                                        <option value="資訊部">資訊部</option>
+                                        <option value="人資部">人資部</option>
+                                        <option value="業務部">業務部</option>
+                                        <option value="設計部">設計部</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-12">負責人員編</label>
+                                <div class="col-md-12">
+                                    <input type="text" name="fEmployeeId" class="form-control" id="fEmployeeId"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <div class="col-md-8 col-md-offset-2">
+                    <button type="button" class="btn btn-primary" id="showAdd" onclick="submit()">新增</button>
+                    <button type="button" class="btn btn-success" id="btn_demo">Demo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /*.modal-header {
+        text-align: center;
+        color:#fff !important;
+    }*/
+
+    .searchBtn {
+        background-color: #6b6b6b;
+        color: #fff;
+        border-radius: 0px 25px 25px 0px;
+    }
+
+    tr {
+        font-size: 15px;
+        font-weight: 400;
+    }
+
+    #proj {
+        position: relative;
+    }
+
+    .newproj {
+        position: absolute;
+        right: 8%;
+    }
+
+    .header {
+        color: black;
+    }
+</style>
+
+
+@section scripts{
+    <script>
+        //顯示新增,修改視窗
+        function showModal() {
+            $("#myModal").modal("show");
+            $("#showAdd").show();
+        }
+
+        //demo
+        $("#btn_demo").click(function () {
+            $("#fProjectId").val("1091016");
+            $("#fProjectName").val("旅遊網站開發");
+            $("#fClient").val("旅行社");
+            $("#fPrice").val(400000);
+            $("#fCreatdDate").val("2020-10-16");
+            $("#fDateline").val("2020-12-30");
+            $("#fEmployeeId").val(123);
+        });
+
+        //新增
+        function submit() {
+            var data = $("#formsumit").serialize();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Create", "Project")",
+                data: data,
+                success: function (respone) {
+                    if (respone == "success") {
+                        //alert("新增成功");
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: '新增成功',
+                            showConfirmButton: false,
+                            timer: 1000
+                        })
+                        $("#myModal").modal('hide');
+                        window.location.reload();
+                    }
+                }
+            })
+        }
+
+        //案名查詢
+        function search() {
+            let keyWord = $("#keyWord").val();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("search", "Project")",
+                data: { keyWord }
+                //success: function (data) {
+
+                //   window.location.reload();
+                //}
+            })
+        }
+
+    </script>
+}

@@ -1,0 +1,52 @@
+﻿@model EIP_System.ViewModels.CVM_ProjectTeamMember
+@{
+    ViewBag.Title = "_projectPartial";
+}
+
+@{ 
+    int pecentage = Convert.ToInt32(@Model.project.fProgress*100);
+}
+
+    <tr id="p_@Model.project.fProjectId">
+        <td>#</td>
+        <td>@Model.project.fProjectId</td>
+        <td>
+            @Html.ActionLink(@Model.project.fProjectName, "Edit", "Project", new { fPRJId = @Model.project.fProjectId }, null)
+            @*<a>@Model.project.fProjectName</a>*@
+        </td>
+        <td>
+            <ul class="list-inline">
+
+                @foreach (var people in @Model.members)
+                {
+                    <li><span class="badge badge-pill bg-primary">@people.tEmployee.fName</span></li>
+                }
+
+            </ul>
+        </td>
+        <td class="project_progress">
+            <div class="progress progress_sm">
+                <div class="progress-bar bg-green" role="progressbar" style="width: @pecentage%;" aria-valuenow="@pecentage%" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small>@pecentage% Complete</small>
+        </td>
+        <td>
+            <button type="button" class="btn btn-success btn-sm">@Model.project.fDepartment</button>
+        </td>
+        <td>
+            @Html.ActionLink("儀錶板", "Dashboard", "ProjectDashboard", new { prjId = @Model.project.fProjectId }, new { Class = "btn btn-warning btn-sm" })
+        </td>
+    </tr>
+
+
+<style>
+    .badge {
+        background-color: #337ab7;
+        padding: 5px 10px;
+        font-size: 14px;
+        font-weight: 400;
+    }
+</style>
+
+
+

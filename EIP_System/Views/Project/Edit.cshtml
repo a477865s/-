@@ -1,0 +1,239 @@
+﻿@model EIP_System.Models.tProject
+
+@{
+    ViewBag.Title = "Edit";
+
+    List<SelectListItem> Department = new List<SelectListItem>
+{
+new SelectListItem{Text="資訊部",Value="資訊部"},
+new SelectListItem{Text="人資部",Value="人資部"},
+new SelectListItem{Text="業務部",Value="業務部"},
+new SelectListItem{Text="設計部",Value="設計部"}
+};
+    List<SelectListItem> statusList = new List<SelectListItem>
+{
+new SelectListItem{Text="進行中",Value="進行中"},
+new SelectListItem{Text="已結案",Value="已結案"},
+new SelectListItem{Text="中止專案",Value="中止專案"}
+};
+
+}
+
+
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+            <div class="x_title">
+
+                <h2>@Model.fProjectName @Model.fProjectId </h2>
+
+                <div class="clearfix"></div>
+            </div>
+
+            <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+
+                <li class="nav-item ">
+                    <a class="nav-link active nowpage" id="ProjectInfo" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" onclick="movetoProjectInfo()">基本資料</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ProjectBudget" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">預算書</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ProjectDetail" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">工作項目</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="cost" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">成本統計</a>
+                </li>
+
+            </ul>
+
+            <div class="x_content">
+                <div class="col-md-12 col-sm-3  ">
+                    <section class="panel">
+                        <div class="panel-body">
+                            <h3 class="green">
+                                <i class="fa fa-paint-brush"></i> 專案基本資料
+                            </h3>
+                            <br />
+                        </div>
+                    </section>
+                </div>
+                <div class="col-md-12 col-sm-12  ">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        @Html.HiddenFor(model => model.fProjectId)
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">案&emsp;&emsp;&emsp;&emsp;號</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fProjectId, new { htmlAttributes = new { @class = "form-control ", disabled = "disabled", placeholder = "Disabled Input" } })
+                                @Html.ValidationMessageFor(model => model.fProjectId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">案&emsp;&emsp;&emsp;&emsp;名</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fProjectName, new { htmlAttributes = new { @class = "form-control", disabled = "disabled", placeholder = "Disabled Input" } })
+                                @Html.ValidationMessageFor(model => model.fProjectName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">業&emsp;&emsp;&emsp;&emsp;主</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fClient, new { htmlAttributes = new { @class = "form-control", disabled = "disabled", placeholder = "Disabled Input" } })
+                                @Html.ValidationMessageFor(model => model.fClient, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">費&emsp;&emsp;&emsp;&emsp;用</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fPrice, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                @Html.ValidationMessageFor(model => model.fPrice, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">預計開始日期</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fCreatdDate, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.fCreatdDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">預計結束日期</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fDateline, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.fDateline, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">負&ensp;責&ensp;&ensp;部&ensp;門</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.DropDownListFor(model => model.fDepartment, Department, htmlAttributes: new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">負責&ensp;人&ensp;員編</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.fEmployeeId, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                @Html.ValidationMessageFor(model => model.fEmployeeId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="item form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">負責&ensp;人&ensp;姓名</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.EditorFor(model => model.tEmployee.fName, new { htmlAttributes = new { @class = "form-control " } })
+                                @Html.ValidationMessageFor(model => model.tEmployee.fName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-form-label col-sm-3 label-align" for="first-name">狀&emsp;&emsp;&emsp;&emsp;態</label>
+                            <div class="col-md-6 col-sm-6 ">
+                                @Html.DropDownListFor(model => model.fStatus, statusList, htmlAttributes: new { @class = "form-control" })
+
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="item form-group">
+                            <div class="col-md-6 col-sm-6 col-md-offset-6 col-sm-offset-6 ">
+                                <input type="submit" value="送出" class="btn btn-success" />
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nowpage {
+        color: #1abb9c;
+        background-color: white !important;
+    }
+</style>
+
+
+@section scripts{
+    <script>
+
+        //取得員工姓名
+        $("#fEmployeeId").change(function () {
+            $("#tEmployee_fName").val("");
+            var Id = $("#fEmployeeId").val();
+            $.ajax({
+                type: "GET",
+                url: "/Project/GetEmpName?empId=" + Id,
+                success: function (data) {
+                    $("#tEmployee_fName").val(data);
+                }
+            })
+        })
+
+
+        //切換專案基本資料
+        $("#ProjectDetail").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                window.location.href =  '@Url.Action("Index", "ProjectDetail", new { prjId = @Model.fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換預算書
+        $("#ProjectInfo").click(function () {
+            $.ajax({
+            type: "GET",
+            url: "/ProjectDetail/Test",
+            success: function (data) {
+                 window.location.href =  '@Url.Action("Edit", "Project", new { fPRJId = @Model.fProjectId })';
+            },
+            error: function (err) { }
+                })
+        })
+
+        //切換工作項目
+        $("#ProjectBudget").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("EditBudget", "Project", new { prjId = @Model.fProjectId })';
+                }
+            }
+            )
+        })
+
+        //切換專案成本
+        $("#cost").click(function () {
+            $.ajax({
+                type: "Get",
+                url: "/ProjectDetail/Test",
+                success: function (data) {
+                    window.location.href ='@Url.Action("projectCost", "Project", new { prjId = @Model.fProjectId })';
+                }
+            })
+        })
+    </script>
+}
